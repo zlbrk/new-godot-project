@@ -4,6 +4,9 @@
 *.uid
 *.import
 
+# VS Code
+.vscode/
+
 # Builds
 _build/
 *.exe
