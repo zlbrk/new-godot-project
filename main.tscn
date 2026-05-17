@@ -1,0 +1,58 @@
+[gd_scene load_steps=2 format=3 uid="uid://dhatlpjy83eyd"]
+
+[ext_resource type="Script" uid="uid://dxexj0ecv3e0" path="res://main.gd" id="1_ig7tw"]
+
+[node name="Main" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_ig7tw")
+
+[node name="RootLayout" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ViewportPanel" type="PanelContainer" parent="RootLayout"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ConsolePanel" type="PanelContainer" parent="RootLayout"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ConsoleLayout" type="VBoxContainer" parent="RootLayout/ConsolePanel"]
+layout_mode = 2
+
+[node name="ConsoleOutput" type="TextEdit" parent="RootLayout/ConsolePanel/ConsoleLayout"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+editable = false
+
+[node name="CommandRow" type="HBoxContainer" parent="RootLayout/ConsolePanel/ConsoleLayout"]
+layout_mode = 2
+
+[node name="PromptLabel" type="Label" parent="RootLayout/ConsolePanel/ConsoleLayout/CommandRow"]
+custom_minimum_size = Vector2(32, 0)
+layout_mode = 2
+text = ">>"
+horizontal_alignment = 1
+
+[node name="CommandLine" type="LineEdit" parent="RootLayout/ConsolePanel/ConsoleLayout/CommandRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Enter command..."
+keep_editing_on_text_submit = true
+
+[node name="StatusLabel" type="Label" parent="RootLayout"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "GG ready."
