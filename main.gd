@@ -46,6 +46,7 @@ func execute_command(cmd: String) -> void:
 			print_line("clear")
 			print_line("about")
 			print_line("new")
+			print_line("history")
 
 		"clear":
 			console_output.clear()
@@ -57,6 +58,9 @@ func execute_command(cmd: String) -> void:
 		"new":
 			print_line("New document created.")
 			status_label.text = "Untitled document"
+
+		"history":
+			print_command_history()
 
 		_:
 			print_line("Unknown command: " + cmd)
@@ -91,7 +95,6 @@ func show_previous_command() -> void:
 	command_line.text = command_history[history_index]
 	command_line.caret_column = command_line.text.length()
 
-
 func show_next_command() -> void:
 	if command_history.is_empty():
 		return
@@ -103,3 +106,13 @@ func show_next_command() -> void:
 	else:
 		command_line.text = command_history[history_index]
 		command_line.caret_column = command_line.text.length()
+
+func print_command_history() -> void:
+	if command_history.is_empty():
+		print_line("Command history is empty.")
+		return
+
+	for i: int in range(command_history.size()):
+		var item_number: int = i + 1
+		var history_item: String = command_history[i]
+		print_line("%d  %s" % [item_number, history_item])
