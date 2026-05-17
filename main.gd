@@ -3,7 +3,7 @@ extends Control
 var command_history: Array[String] = []
 var history_index: int = 0
 
-@onready var console_output: TextEdit = %ConsoleOutput
+@onready var console_output: RichTextLabel = %ConsoleOutput
 @onready var command_line: LineEdit = %CommandLine
 @onready var status_label: Label = %StatusLabel
 
@@ -16,7 +16,10 @@ func _ready() -> void:
 	command_line.grab_focus()
 
 func print_line(text: String) -> void:
-	console_output.text += text + "\n"
+	if console_output.text.is_empty():
+		console_output.text = text
+	else:
+		console_output.text += "\n" + text
 
 func _on_command_submitted(command: String) -> void:
 	var cmd: String = command.strip_edges()
@@ -41,22 +44,22 @@ func add_command_to_history(cmd: String) -> void:
 func execute_command(cmd: String) -> void:
 	match cmd:
 		"help":
-			print_line("Available commands:")
-			print_line("help")
-			print_line("clear")
-			print_line("about")
-			print_line("new")
-			print_line("history")
+			print_line("\tAvailable commands:")
+			print_line("\t\thelp")
+			print_line("\t\tclear")
+			print_line("\t\tabout")
+			print_line("\t\tnew")
+			print_line("\t\thistory")
 
 		"clear":
 			console_output.clear()
 
 		"about":
-			print_line("GG CAE prototype")
-			print_line("Godot + Gmsh")
+			print_line("\tGG CAE prototype")
+			print_line("\tGodot + Gmsh")
 
 		"new":
-			print_line("New document created.")
+			print_line("\tNew document created.")
 			status_label.text = "Untitled document"
 
 		"history":
@@ -115,4 +118,4 @@ func print_command_history() -> void:
 	for i: int in range(command_history.size()):
 		var item_number: int = i + 1
 		var history_item: String = command_history[i]
-		print_line("%d  %s" % [item_number, history_item])
+		print_line("\t%d  %s" % [item_number, history_item])

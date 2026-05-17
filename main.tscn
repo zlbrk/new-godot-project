@@ -30,11 +30,17 @@ size_flags_vertical = 3
 [node name="ConsoleLayout" type="VBoxContainer" parent="RootLayout/ConsolePanel"]
 layout_mode = 2
 
-[node name="ConsoleOutput" type="TextEdit" parent="RootLayout/ConsolePanel/ConsoleLayout"]
+[node name="ConsoleOutput" type="RichTextLabel" parent="RootLayout/ConsolePanel/ConsoleLayout"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
-editable = false
+focus_mode = 2
+theme_override_colors/default_color = Color(0.5019608, 0.5019608, 0.5019608, 1)
+theme_override_colors/font_selected_color = Color(0.70139164, 0.63896036, 0.45897388, 1)
+theme_override_colors/selection_color = Color(0.4745098, 0.6431373, 0.8156863, 0.5019608)
+scroll_following = true
+context_menu_enabled = true
+selection_enabled = true
 
 [node name="CommandRow" type="HBoxContainer" parent="RootLayout/ConsolePanel/ConsoleLayout"]
 layout_mode = 2
@@ -49,10 +55,12 @@ horizontal_alignment = 1
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.70139164, 0.63896036, 0.45897388, 1)
 placeholder_text = "Enter command..."
 keep_editing_on_text_submit = true
 
 [node name="StatusLabel" type="Label" parent="RootLayout"]
 unique_name_in_owner = true
 layout_mode = 2
-text = "GG ready."
+theme_override_colors/font_color = Color(0.7019608, 0.6392157, 0.45882353, 1)
+text = "GG ready..."
