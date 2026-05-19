@@ -12,6 +12,7 @@ _build/
 *.exe
 *.pck
 *.zip
+*.7z
 
 # OS
 Thumbs.db
