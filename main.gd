@@ -23,7 +23,8 @@ func execute_command(cmd: String) -> void:
 	if parts.is_empty():
 		return
 
-	var command_name: String = parts[0]
+	var command_name: String = parts[0].strip_edges()
+
 	match command_name:
 		"help":
 			print_list_item("Available commands:")
@@ -52,6 +53,7 @@ func execute_command(cmd: String) -> void:
 
 		"status":
 			print_model_status()
+
 		"rename":
 			if parts.size() < 2:
 				print_list_item("Usage: rename <filename>")
@@ -63,7 +65,7 @@ func execute_command(cmd: String) -> void:
 			print_list_item("Document renamed to %s" % [new_name])
 
 		_:
-			print_list_item("Unknown command: " + cmd)
+			print_list_item("Unknown command: " + command_name)
 
 
 func print_line(text: String) -> void:
