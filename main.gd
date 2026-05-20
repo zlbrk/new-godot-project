@@ -17,6 +17,55 @@ func _ready() -> void:
 	print_line("Type 'help' for available commands.")
 	command_line.grab_focus()
 
+func execute_command(cmd: String) -> void:
+	var parts: PackedStringArray = cmd.split(" ", false)
+
+	if parts.is_empty():
+		return
+
+	var command_name: String = parts[0]
+	match command_name:
+		"help":
+			print_list_item("Available commands:")
+			print_list_item("help")
+			print_list_item("clear")
+			print_list_item("about")
+			print_list_item("new")
+			print_list_item("history")
+			print_list_item("status")
+			print_list_item("rename")
+
+		"clear":
+			console_output.clear()
+
+		"about":
+			print_list_item("GG CAE prototype")
+			print_list_item("Godot + Gmsh")
+
+		"new":
+			model.reset()
+			print_list_item("%s document created." % [model.document_name])
+			status_label.text = model.document_name
+
+		"history":
+			print_command_history()
+
+		"status":
+			print_model_status()
+		"rename":
+			if parts.size() < 2:
+				print_list_item("Usage: rename <filename>")
+				return
+			var new_name: String = parts[1]
+			model.document_name = new_name
+			model.is_dirty = true
+			status_label.text = model.document_name
+			print_list_item("Document renamed to %s" % [new_name])
+
+		_:
+			print_list_item("Unknown command: " + cmd)
+
+
 func print_line(text: String) -> void:
 	if console_output.text.is_empty():
 		console_output.text = text
@@ -46,37 +95,8 @@ func add_command_to_history(cmd: String) -> void:
 	command_history.append(cmd)
 	history_index = command_history.size()
 
-func execute_command(cmd: String) -> void:
-	match cmd:
-		"help":
-			print_list_item("Available commands:")
-			print_list_item("help")
-			print_list_item("clear")
-			print_list_item("about")
-			print_list_item("new")
-			print_list_item("history")
-			print_list_item("status")
+# func execute_command(cmd: String) -> void:
 
-		"clear":
-			console_output.clear()
-
-		"about":
-			print_list_item("GG CAE prototype")
-			print_list_item("Godot + Gmsh")
-
-		"new":
-			model.reset()
-			print_list_item("%s document created." % [model.document_name])
-			status_label.text = model.document_name
-
-		"history":
-			print_command_history()
-
-		"status":
-			print_model_status()
-
-		_:
-			print_line("Unknown command: " + cmd)
 
 func print_model_status() -> void:
 	print_list_item("Document: %s" % [model.document_name])
