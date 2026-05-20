@@ -2,12 +2,14 @@ extends Control
 
 var command_history: Array[String] = []
 var history_index: int = 0
+var model: GGModel
 
 @onready var console_output: RichTextLabel = %ConsoleOutput
 @onready var command_line: LineEdit = %CommandLine
 @onready var status_label: Label = %StatusLabel
 
 func _ready() -> void:
+	model = GGModel.new()
 	command_line.text_submitted.connect(_on_command_submitted)
 	command_line.gui_input.connect(_on_command_line_gui_input)
 
@@ -19,12 +21,15 @@ func print_line(text: String) -> void:
 	if console_output.text.is_empty():
 		console_output.text = text
 	else:
-		console_output.text += "\n" + text
+		console_output.text += text + "\n"
+
+func print_list_item(text: String) -> void:
+	print_line("\t" + text)
 
 func _on_command_submitted(command: String) -> void:
 	var cmd: String = command.strip_edges()
 
-	print_line("> " + cmd)
+	print_line("> " + cmd + "\t")
 	command_line.clear()
 
 	if cmd.is_empty():
@@ -44,29 +49,39 @@ func add_command_to_history(cmd: String) -> void:
 func execute_command(cmd: String) -> void:
 	match cmd:
 		"help":
-			print_line("\tAvailable commands:")
-			print_line("\t\thelp")
-			print_line("\t\tclear")
-			print_line("\t\tabout")
-			print_line("\t\tnew")
-			print_line("\t\thistory")
+			print_list_item("Available commands:")
+			print_list_item("help")
+			print_list_item("clear")
+			print_list_item("about")
+			print_list_item("new")
+			print_list_item("history")
+			print_list_item("status")
 
 		"clear":
 			console_output.clear()
 
 		"about":
-			print_line("\tGG CAE prototype")
-			print_line("\tGodot + Gmsh")
+			print_list_item("GG CAE prototype")
+			print_list_item("Godot + Gmsh")
 
 		"new":
-			print_line("\tNew document created.")
-			status_label.text = "Untitled document"
+			model.reset()
+			print_list_item("%s document created." % [model.document_name])
+			status_label.text = model.document_name
 
 		"history":
 			print_command_history()
 
+		"status":
+			print_model_status()
+
 		_:
 			print_line("Unknown command: " + cmd)
+
+func print_model_status() -> void:
+	print_list_item("Document: %s" % [model.document_name])
+	print_list_item("Units: %s" % [model.units])
+	print_list_item("Dirty: %s" % [str(model.is_dirty)])
 
 func refocus_command_line() -> void:
 	command_line.call_deferred("grab_focus")
