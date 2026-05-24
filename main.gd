@@ -45,8 +45,8 @@ func execute_command(cmd: String) -> void:
 			clear_console()
 
 		"about":
-			print_list_item("GG Editor prototype")
-			print_list_item("Godot + Gmsh")
+			print_line("GG Editor prototype")
+			print_line("Godot + Gmsh")
 
 		"new":
 			model.reset()
