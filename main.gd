@@ -1,6 +1,7 @@
 extends Control
 
 var command_history: Array[String] = []
+var console_lines: Array[String] = []
 var history_index: int = 0
 var model: GGModel
 
@@ -13,7 +14,7 @@ func _ready() -> void:
 	command_line.text_submitted.connect(_on_command_submitted)
 	command_line.gui_input.connect(_on_command_line_gui_input)
 
-	print_line("GG CAE shell initialized.")
+	print_line("GG Editor shell initialized.")
 	print_line("Type 'help' for available commands.")
 	command_line.grab_focus()
 
@@ -24,10 +25,11 @@ func execute_command(cmd: String) -> void:
 		return
 
 	var command_name: String = parts[0].strip_edges()
-
+	if command_name.is_empty():
+		return
 	match command_name:
 		"help":
-			print_list_item("Available commands:")
+			print_line("Available commands:")
 			print_list_item("help")
 			print_list_item("clear")
 			print_list_item("about")
@@ -35,12 +37,15 @@ func execute_command(cmd: String) -> void:
 			print_list_item("history")
 			print_list_item("status")
 			print_list_item("rename")
+			print_list_item("list_points")
+			print_list_item("add_point")
+			print_list_item("clear_points")
 
 		"clear":
-			console_output.clear()
+			clear_console()
 
 		"about":
-			print_list_item("GG CAE prototype")
+			print_list_item("GG Editor prototype")
 			print_list_item("Godot + Gmsh")
 
 		"new":
@@ -64,15 +69,56 @@ func execute_command(cmd: String) -> void:
 			status_label.text = model.document_name
 			print_list_item("Document renamed to %s" % [new_name])
 
+		"list_points":
+			print_points()
+
+		"clear_points":
+			model.clear_points()
+			print_list_item("Points cleared.")
+
+		"add_point":
+			if parts.size() < 3:
+				print_list_item("Usage: add_point <x> <y>")
+				return
+
+			var x_text: String = parts[1]
+			var y_text: String = parts[2]
+
+			if not x_text.is_valid_float():
+				print_line("Invalid X coordinate.")
+				return
+
+			if not y_text.is_valid_float():
+				print_line("Invalid Y coordinate.")
+				return
+
+			var px: float = x_text.to_float()
+			var py: float = y_text.to_float()
+
+			model.add_point(px, py)
+			status_label.text = model.document_name
+			print_list_item("Point %d added." % [model.points.size()])
+
 		_:
 			print_list_item("Unknown command: " + command_name)
 
+func print_points() -> void:
+	if model.points.is_empty():
+		print_list_item("No points.")
+		return
+
+	for i: int in range(model.points.size()):
+		var point: GGPoint2D = model.points[i]
+		var point_number: int = i + 1
+		print_list_item("%d: (%.3f, %.3f)" % [point_number, point.x, point.y])
 
 func print_line(text: String) -> void:
-	if console_output.text.is_empty():
-		console_output.text = text
-	else:
-		console_output.text += text + "\n"
+	console_lines.append(text)
+	console_output.text = "\n".join(console_lines)
+
+func clear_console() -> void:
+	console_lines.clear()
+	console_output.text = ""
 
 func print_list_item(text: String) -> void:
 	print_line("\t" + text)
@@ -80,7 +126,7 @@ func print_list_item(text: String) -> void:
 func _on_command_submitted(command: String) -> void:
 	var cmd: String = command.strip_edges()
 
-	print_line("> " + cmd + "\t")
+	print_line("> " + cmd)
 	command_line.clear()
 
 	if cmd.is_empty():
@@ -95,6 +141,7 @@ func _on_command_submitted(command: String) -> void:
 
 func add_command_to_history(cmd: String) -> void:
 	command_history.append(cmd)
+
 	history_index = command_history.size()
 
 # func execute_command(cmd: String) -> void:
@@ -155,4 +202,4 @@ func print_command_history() -> void:
 	for i: int in range(command_history.size()):
 		var item_number: int = i + 1
 		var history_item: String = command_history[i]
-		print_line("\t%d  %s" % [item_number, history_item])
+		print_list_item("%d  %s" % [item_number, history_item])
