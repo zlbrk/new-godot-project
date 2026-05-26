@@ -1,6 +1,8 @@
-[gd_scene load_steps=2 format=3 uid="uid://dhatlpjy83eyd"]
+[gd_scene load_steps=4 format=3 uid="uid://dhatlpjy83eyd"]
 
 [ext_resource type="Script" uid="uid://dxexj0ecv3e0" path="res://main.gd" id="1_ig7tw"]
+[ext_resource type="FontFile" uid="uid://j315o28sukqr" path="res://FiraCode-SemiBold.ttf" id="2_0xm2m"]
+[ext_resource type="FontFile" uid="uid://dg5uircbvok6r" path="res://FiraCode-Medium.ttf" id="3_h2yge"]
 
 [node name="Main" type="Control"]
 layout_mode = 3
@@ -26,6 +28,7 @@ size_flags_vertical = 3
 [node name="ConsolePanel" type="PanelContainer" parent="RootLayout"]
 layout_mode = 2
 size_flags_vertical = 3
+size_flags_stretch_ratio = 1.5
 
 [node name="ConsoleLayout" type="VBoxContainer" parent="RootLayout/ConsolePanel"]
 layout_mode = 2
@@ -38,6 +41,7 @@ focus_mode = 2
 theme_override_colors/default_color = Color(0.5019608, 0.5019608, 0.5019608, 1)
 theme_override_colors/font_selected_color = Color(0.8901961, 0.8901961, 0.60784316, 1)
 theme_override_colors/selection_color = Color(0.4745098, 0.6431373, 0.8156863, 0.5019608)
+theme_override_fonts/mono_font = ExtResource("3_h2yge")
 scroll_following = true
 context_menu_enabled = true
 selection_enabled = true
@@ -48,7 +52,8 @@ layout_mode = 2
 [node name="PromptLabel" type="Label" parent="RootLayout/ConsolePanel/ConsoleLayout/CommandRow"]
 custom_minimum_size = Vector2(32, 0)
 layout_mode = 2
-text = "GG:"
+theme_override_fonts/font = ExtResource("2_0xm2m")
+text = "GG->"
 horizontal_alignment = 1
 
 [node name="CommandLine" type="LineEdit" parent="RootLayout/ConsolePanel/ConsoleLayout/CommandRow"]
@@ -58,6 +63,7 @@ size_flags_horizontal = 3
 theme_override_colors/font_color = Color(1.353256, 1.2420194, 0.68583614, 1)
 placeholder_text = "Enter command..."
 keep_editing_on_text_submit = true
+flat = true
 
 [node name="PadLabel" type="Label" parent="RootLayout/ConsolePanel/ConsoleLayout/CommandRow"]
 layout_mode = 2
@@ -68,4 +74,5 @@ horizontal_alignment = 1
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(1.353256, 1.2420194, 0.68583614, 1)
+theme_override_fonts/font = ExtResource("2_0xm2m")
 text = "GG ready..."

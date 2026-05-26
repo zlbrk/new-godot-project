@@ -18,7 +18,18 @@ func add_point(x: float, y: float) -> void:
 	points.append(GGPoint2D.new(x, y))
 	is_dirty = true
 
-
 func clear_points() -> void:
 	points.clear()
 	is_dirty = false
+
+func move_point(user_index: int, x: float, y: float) -> bool:
+	var internal_index: int = user_index - 1
+
+	if internal_index < 0 or internal_index >= points.size():
+		return false
+
+	points[internal_index].x = x
+	points[internal_index].y = y
+	is_dirty = true
+
+	return true
