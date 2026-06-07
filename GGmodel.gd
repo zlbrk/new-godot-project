@@ -5,7 +5,6 @@ extends RefCounted
 var document_name: String = "Untitled.geo"
 var units: String = "mm"
 var is_dirty: bool = false
-
 var points: Array[GGPoint2D] = []
 
 func reset() -> void:
@@ -24,12 +23,24 @@ func clear_points() -> void:
 
 func move_point(user_index: int, x: float, y: float) -> bool:
 	var internal_index: int = user_index - 1
+	if internal_index < 0 or internal_index >= points.size():
+		return false
+	points[internal_index].x = x
+	points[internal_index].y = y
+	is_dirty = true
+	return true
+
+func remove_point(user_index: int) -> bool:
+	var internal_index: int = user_index - 1
 
 	if internal_index < 0 or internal_index >= points.size():
 		return false
 
-	points[internal_index].x = x
-	points[internal_index].y = y
+	points.remove_at(internal_index)
 	is_dirty = true
 
 	return true
+
+func rename_document(new_name: String) -> void:
+	document_name = new_name
+	is_dirty = true
