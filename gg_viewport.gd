@@ -6,6 +6,10 @@ const POINT_COLOR: Color = Color.ANTIQUE_WHITE # just points color
 const WORLD_SCALE: float = 1000.0 # reasonable scale for models defined in mm
 const SCREEN_ORIGIN: Vector2 = Vector2(80, 80) # reasonable draft testing origin
 
+const LABEL_OFFSET: Vector2 = Vector2(8.0, -8.0)
+const LABEL_FONT_SIZE: int = 14
+const LABEL_COLOR: Color = Color.WHITE
+
 var model: GGModel = null # define document model referense
 
 func set_model(new_model: GGModel) -> void:
@@ -20,6 +24,22 @@ func world_to_screen(point: GGPoint2D) -> Vector2:
 func _draw() -> void:
 	if model == null:
 		return
+
 	for point: GGPoint2D in model.points:
 		var screen_position: Vector2 = world_to_screen(point)
-		draw_circle(screen_position, POINT_RADIUS, POINT_COLOR)
+
+		draw_circle(
+			screen_position,
+			POINT_RADIUS,
+			POINT_COLOR
+		)
+
+		draw_string(
+			get_theme_default_font(),
+			screen_position + LABEL_OFFSET,
+			str(point.id),
+			HORIZONTAL_ALIGNMENT_LEFT,
+			-1.0,
+			LABEL_FONT_SIZE,
+			LABEL_COLOR
+		)
