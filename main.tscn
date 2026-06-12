@@ -1,7 +1,8 @@
-[gd_scene load_steps=4 format=3 uid="uid://dhatlpjy83eyd"]
+[gd_scene load_steps=5 format=3 uid="uid://dhatlpjy83eyd"]
 
 [ext_resource type="Script" uid="uid://dxexj0ecv3e0" path="res://main.gd" id="1_ig7tw"]
 [ext_resource type="FontFile" uid="uid://j315o28sukqr" path="res://FiraCode-SemiBold.ttf" id="2_0xm2m"]
+[ext_resource type="Script" uid="uid://bw0y85435e514" path="res://gg_viewport.gd" id="2_1bvp3"]
 [ext_resource type="FontFile" uid="uid://dg5uircbvok6r" path="res://FiraCode-Medium.ttf" id="3_h2yge"]
 
 [node name="Main" type="Control"]
@@ -21,19 +22,26 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="ViewportPanel" type="PanelContainer" parent="RootLayout"]
+[node name="MainSplit" type="VSplitContainer" parent="RootLayout"]
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="ConsolePanel" type="PanelContainer" parent="RootLayout"]
+[node name="ViewportPanel" type="PanelContainer" parent="RootLayout/MainSplit"]
 layout_mode = 2
 size_flags_vertical = 3
-size_flags_stretch_ratio = 1.5
 
-[node name="ConsoleLayout" type="VBoxContainer" parent="RootLayout/ConsolePanel"]
+[node name="GGViewport" type="Control" parent="RootLayout/MainSplit/ViewportPanel"]
+layout_mode = 2
+script = ExtResource("2_1bvp3")
+
+[node name="ConsolePanel" type="PanelContainer" parent="RootLayout/MainSplit"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ConsoleLayout" type="VBoxContainer" parent="RootLayout/MainSplit/ConsolePanel"]
 layout_mode = 2
 
-[node name="ConsoleOutput" type="RichTextLabel" parent="RootLayout/ConsolePanel/ConsoleLayout"]
+[node name="ConsoleOutput" type="RichTextLabel" parent="RootLayout/MainSplit/ConsolePanel/ConsoleLayout"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
@@ -46,17 +54,17 @@ scroll_following = true
 context_menu_enabled = true
 selection_enabled = true
 
-[node name="CommandRow" type="HBoxContainer" parent="RootLayout/ConsolePanel/ConsoleLayout"]
+[node name="CommandRow" type="HBoxContainer" parent="RootLayout/MainSplit/ConsolePanel/ConsoleLayout"]
 layout_mode = 2
 
-[node name="PromptLabel" type="Label" parent="RootLayout/ConsolePanel/ConsoleLayout/CommandRow"]
+[node name="PromptLabel" type="Label" parent="RootLayout/MainSplit/ConsolePanel/ConsoleLayout/CommandRow"]
 custom_minimum_size = Vector2(32, 0)
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_0xm2m")
 text = "GG->"
 horizontal_alignment = 1
 
-[node name="CommandLine" type="LineEdit" parent="RootLayout/ConsolePanel/ConsoleLayout/CommandRow"]
+[node name="CommandLine" type="LineEdit" parent="RootLayout/MainSplit/ConsolePanel/ConsoleLayout/CommandRow"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
@@ -65,7 +73,7 @@ placeholder_text = "Enter command..."
 keep_editing_on_text_submit = true
 flat = true
 
-[node name="PadLabel" type="Label" parent="RootLayout/ConsolePanel/ConsoleLayout/CommandRow"]
+[node name="PadLabel" type="Label" parent="RootLayout/MainSplit/ConsolePanel/ConsoleLayout/CommandRow"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 20
 horizontal_alignment = 1
