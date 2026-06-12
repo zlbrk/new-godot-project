@@ -8,10 +8,13 @@ var model: GGModel
 @onready var console_output: RichTextLabel = %ConsoleOutput
 @onready var command_line: LineEdit = %CommandLine
 @onready var status_label: Label = %StatusLabel
+@onready var gg_viewport: GGViewport = $RootLayout/MainSplit/ViewportPanel/GGViewport
+# @onready var gg_viewport: GGViewport =
 
 # Godot specific private function for main CLI widget init
 func _ready() -> void:
 	model = GGModel.new()
+	gg_viewport.set_model(model)
 	command_line.text_submitted.connect(_on_command_submitted)
 	command_line.gui_input.connect(_on_command_line_gui_input)
 
@@ -108,6 +111,7 @@ func cmd_remove_point(tokens: PackedStringArray) -> void:
 		print_line("Error: point index out of range.")
 		return
 	print_line("Point %d removed." % [user_index])
+	gg_viewport.queue_redraw()
 
 
 func cmd_about() -> void:
@@ -124,6 +128,7 @@ func cmd_new(tokens: PackedStringArray) -> void:
 	model.document_name = new_name + ".geo"
 	print_line("%s document created." % [model.document_name])
 	status_label.text = model.document_name
+	gg_viewport.queue_redraw()
 
 
 func cmd_rename(tokens: PackedStringArray) -> void:
@@ -133,11 +138,13 @@ func cmd_rename(tokens: PackedStringArray) -> void:
 	var new_name: String = tokens[1]
 	model.rename_document(new_name)
 	print_line("Document renamed to %s" % [new_name])
+	status_label.text = model.document_name
 
 
 func cmd_clear_points() -> void:
 	model.clear_points()
 	print_list_item("Points cleared.")
+	gg_viewport.queue_redraw()
 
 
 func cmd_add_point(tokens: PackedStringArray) -> void:
@@ -157,6 +164,7 @@ func cmd_add_point(tokens: PackedStringArray) -> void:
 	model.add_point(px, py)
 	status_label.text = model.document_name
 	print_list_item("Point %d added." % [model.points.size()])
+	gg_viewport.queue_redraw()
 
 
 func cmd_move_point(tokens: PackedStringArray) -> void:
@@ -176,8 +184,8 @@ func cmd_move_point(tokens: PackedStringArray) -> void:
 	if not model.move_point(user_index, x, y):
 		print_list_item("Error: point index is out of range")
 		return
-
 	print_line("Point %d moved to (%.3f, %.3f)." % [user_index, x, y])
+	gg_viewport.queue_redraw()
 
 
 func cmd_help() -> void:
