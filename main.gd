@@ -101,16 +101,16 @@ func execute_command(cmd: String) -> void:
 # ========================================================
 func cmd_remove_point(tokens: PackedStringArray) -> void:
 	if tokens.size() != 2:
-		print_line("Usage: remove_point <index>")
+		print_line("Usage: remove_point <ID>")
 		return
 	if not tokens[1].is_valid_int():
-		print_line("Error: point index must be an integer.")
+		print_line("Error: point ID must be an integer.")
 		return
-	var user_index: int = tokens[1].to_int()
-	if not model.remove_point(user_index):
-		print_line("Error: point index out of range.")
+	var point_id: int = tokens[1].to_int()
+	if not model.remove_point(point_id):
+		print_list_item("Error: point ID not found.")
 		return
-	print_line("Point %d removed." % [user_index])
+	print_line("Point %d removed." % [point_id])
 	gg_viewport.queue_redraw()
 
 
@@ -161,30 +161,30 @@ func cmd_add_point(tokens: PackedStringArray) -> void:
 		return
 	var px: float = x_text.to_float()
 	var py: float = y_text.to_float()
-	model.add_point(px, py)
+	var point: GGPoint2D = model.add_point(px, py)
 	status_label.text = model.document_name
-	print_list_item("Point %d added." % [model.points.size()])
+	print_list_item("Point %d added." % [point.id])
 	gg_viewport.queue_redraw()
 
 
 func cmd_move_point(tokens: PackedStringArray) -> void:
 	if tokens.size() != 4:
-		print_list_item("Usage: move_point <index> <x> <y>")
+		print_list_item("Usage: move_point <ID> <x> <y>")
 		return
 	if not tokens[1].is_valid_int():
-		print_list_item("Error: point index must be an integer")
+		print_list_item("Error: point ID must be an integer")
 		return
 	if not (tokens[2].is_valid_float() and tokens[3].is_valid_float()):
 		print_list_item("Error: coordinates must be valid floats")
 		return
-	var user_index: int = tokens[1].to_int()
+	var point_id: int = tokens[1].to_int()
 	var x: float = tokens[2].to_float()
 	var y: float = tokens[3].to_float()
 
-	if not model.move_point(user_index, x, y):
-		print_list_item("Error: point index is out of range")
+	if not model.move_point(point_id, x, y):
+		print_list_item("Error: point ID not found")
 		return
-	print_line("Point %d moved to (%.3f, %.3f)." % [user_index, x, y])
+	print_line("Point %d moved to (%.3f, %.3f)." % [point_id, x, y])
 	gg_viewport.queue_redraw()
 
 
@@ -225,8 +225,8 @@ func cmd_list_points() -> void:
 
 	for i: int in range(model.points.size()):
 		var point: GGPoint2D = model.points[i]
-		var point_number: int = i + 1
-		print_list_item("%d: (%.3f, %.3f)" % [point_number, point.x, point.y])
+		var point_id: int = point.id
+		print_list_item("%d: (%.3f, %.3f)" % [point_id, point.x, point.y])
 
 
 func refocus_command_line() -> void:

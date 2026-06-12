@@ -1,7 +1,6 @@
 extends Control
 class_name GGViewport
 
-const TEST_POINT_POSITION: Vector2 = Vector2(100, 100) # used for testing purposes only
 const POINT_RADIUS: float = 4.0 # just points size
 const POINT_COLOR: Color = Color.ANTIQUE_WHITE # just points color
 const WORLD_SCALE: float = 1000.0 # reasonable scale for models defined in mm
@@ -21,7 +20,6 @@ func world_to_screen(point: GGPoint2D) -> Vector2:
 func _draw() -> void:
 	if model == null:
 		return
-	# draw_circle(TEST_POINT_POSITION, POINT_RADIUS, POINT_COLOR)
 	for point: GGPoint2D in model.points:
 		var screen_position: Vector2 = world_to_screen(point)
 		draw_circle(screen_position, POINT_RADIUS, POINT_COLOR)
