@@ -27,10 +27,12 @@ layout_mode = 2
 size_flags_vertical = 3
 
 [node name="ViewportPanel" type="PanelContainer" parent="RootLayout/MainSplit"]
+clip_contents = true
 layout_mode = 2
 size_flags_vertical = 3
 
 [node name="GGViewport" type="Control" parent="RootLayout/MainSplit/ViewportPanel"]
+clip_contents = true
 layout_mode = 2
 script = ExtResource("2_1bvp3")
 

@@ -11,6 +11,7 @@ const LABEL_FONT_SIZE: int = 14
 const LABEL_COLOR: Color = Color.WHITE
 
 var model: GGModel = null # define document model referense
+var font: Font = get_theme_default_font()
 
 func set_model(new_model: GGModel) -> void:
 	model = new_model
@@ -18,12 +19,14 @@ func set_model(new_model: GGModel) -> void:
 
 func world_to_screen(point: GGPoint2D) -> Vector2:
 	var screen_x: float = SCREEN_ORIGIN.x + point.x * WORLD_SCALE
-	var screen_y: float = SCREEN_ORIGIN.y + point.y * WORLD_SCALE
+	var screen_y: float = SCREEN_ORIGIN.y - point.y * WORLD_SCALE
 	return Vector2(screen_x, screen_y)
 
 func _draw() -> void:
 	if model == null:
 		return
+
+	draw_axes()
 
 	for point: GGPoint2D in model.points:
 		var screen_position: Vector2 = world_to_screen(point)
@@ -35,7 +38,7 @@ func _draw() -> void:
 		)
 
 		draw_string(
-			get_theme_default_font(),
+			font,
 			screen_position + LABEL_OFFSET,
 			str(point.id),
 			HORIZONTAL_ALIGNMENT_LEFT,
@@ -43,3 +46,24 @@ func _draw() -> void:
 			LABEL_FONT_SIZE,
 			LABEL_COLOR
 		)
+
+func draw_axes() -> void:
+	var axis_length: float = 10000.0
+
+	var origin: Vector2 = SCREEN_ORIGIN
+
+	draw_line(
+		origin,
+		origin + Vector2(axis_length, 0.0),
+		Color.DARK_GRAY,
+		2.0
+	)
+	draw_string(font, SCREEN_ORIGIN + Vector2(10, 20), "X")
+
+	draw_line(
+		origin,
+		origin + Vector2(0.0, axis_length),
+		Color.DARK_GRAY,
+		2.0
+	)
+	draw_string(font, SCREEN_ORIGIN + Vector2(-5, -10), "Y")
