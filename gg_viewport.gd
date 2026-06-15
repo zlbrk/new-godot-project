@@ -18,8 +18,9 @@ func set_model(new_model: GGModel) -> void:
 	queue_redraw()
 
 func world_to_screen(point: GGPoint2D) -> Vector2:
-	var screen_x: float = SCREEN_ORIGIN.x + point.x * WORLD_SCALE
-	var screen_y: float = SCREEN_ORIGIN.y - point.y * WORLD_SCALE
+	var origin: Vector2 = get_screen_origin()
+	var screen_x: float = origin.x + point.x * WORLD_SCALE
+	var screen_y: float = origin.y - point.y * WORLD_SCALE
 	return Vector2(screen_x, screen_y)
 
 func _draw() -> void:
@@ -50,20 +51,32 @@ func _draw() -> void:
 func draw_axes() -> void:
 	var axis_length: float = 10000.0
 
-	var origin: Vector2 = SCREEN_ORIGIN
+	var origin: Vector2 = get_screen_origin()
 
 	draw_line(
-		origin,
+		origin + Vector2(-axis_length, 0.0),
 		origin + Vector2(axis_length, 0.0),
-		Color.DARK_GRAY,
+		Color.RED,
 		2.0
 	)
-	draw_string(font, SCREEN_ORIGIN + Vector2(10, 20), "X")
+
+	draw_string(
+	font,
+	origin + Vector2(20.0, 20.0),
+	"X"
+	)
 
 	draw_line(
-		origin,
+		origin + Vector2(0.0, -axis_length),
 		origin + Vector2(0.0, axis_length),
-		Color.DARK_GRAY,
+		Color.GREEN_YELLOW,
 		2.0
 	)
-	draw_string(font, SCREEN_ORIGIN + Vector2(-5, -10), "Y")
+	draw_string(
+		font,
+		origin + Vector2(-15.0, -15.0),
+		"Y"
+	)
+
+func get_screen_origin() -> Vector2:
+	return size * 0.5
