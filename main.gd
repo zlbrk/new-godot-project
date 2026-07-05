@@ -9,7 +9,7 @@ var model: GGModel
 @onready var command_line: LineEdit = %CommandLine
 @onready var status_label: Label = %StatusLabel
 @onready var gg_viewport: GGViewport = $RootLayout/MainSplit/ViewportPanel/GGViewport
-# @onready var gg_viewport: GGViewport =
+
 
 # Godot specific private function for main CLI widget init
 func _ready() -> void:
@@ -93,12 +93,40 @@ func execute_command(cmd: String) -> void:
 			cmd_move_point(tokens)
 		"remove_point":
 			cmd_remove_point(tokens)
+		"zoom_in":
+			cmd_zoom_in()
+		"zoom_out":
+			cmd_zoom_out()
+		"set_zoom":
+			cmd_set_zoom(tokens)
 
 		_:
 			print_list_item("Unknown command: " + command_name)
 # ========================================================
 # Implementations
 # ========================================================
+func cmd_set_zoom(tokens: PackedStringArray) -> void:
+	if tokens.size() != 2:
+		print_line("Usage: set_zoom <zoom_level>")
+		return
+	if not tokens[1].is_valid_float():
+		print_line("Invalid zoom level.")
+		return
+	var new_zoom: float = tokens[1].to_float()
+	gg_viewport.set_zoom(new_zoom)
+	gg_viewport.queue_redraw()
+	print_list_item("Zoom set to %.2f" % [gg_viewport.zoom])
+
+func cmd_zoom_in() -> void:
+	gg_viewport.zoom_in()
+	gg_viewport.queue_redraw()
+	print_list_item("Zoomed in. Current zoom: %.2f" % [gg_viewport.zoom])
+
+func cmd_zoom_out() -> void:
+	gg_viewport.zoom_out()
+	gg_viewport.queue_redraw()
+	print_list_item("Zoomed out. Current zoom: %.2f" % [gg_viewport.zoom])
+
 func cmd_remove_point(tokens: PackedStringArray) -> void:
 	if tokens.size() != 2:
 		print_line("Usage: remove_point <ID>")
@@ -202,6 +230,9 @@ func cmd_help() -> void:
 	print_list_item("move_point")
 	print_list_item("remove_point")
 	print_list_item("clear_points")
+	print_list_item("zoom_in")
+	print_list_item("zoom_out")
+	print_list_item("set_zoom")
 
 
 func print_line(text: String) -> void:

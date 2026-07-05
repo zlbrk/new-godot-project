@@ -6,30 +6,40 @@ var model: GGModel = null # define document model referense
 # -----------------------------------------------------------------------------
 # Rendering constants
 # -----------------------------------------------------------------------------
+const WORLD_SCALE: float = 1000.0 # reasonable scale for models defined in mm
+const AXIS_LENGTH: float = 50.0
+
 const POINT_RADIUS: float = 4.0 # just points size
 const POINT_COLOR: Color = Color.ANTIQUE_WHITE # just points color
-
-const WORLD_SCALE: float = 1000.0 # reasonable scale for models defined in mm
-const SCREEN_ORIGIN: Vector2 = Vector2(80, 80) # reasonable draft testing origin
-
 const LABEL_OFFSET: Vector2 = Vector2(8.0, -8.0)
 const LABEL_COLOR: Color = Color.WHITE
 
-const AXIS_LABEL_FONT_SCALE: float = 1.0 # base theme font scaling for axis labels
-const POINT_LABEL_FONT_SCALE: float = 0.85 # font scaling for point labels
+const AXIS_LABEL_FONT_SCALE: float = 0.85 # base theme font scaling for axis labels
+const POINT_LABEL_FONT_SCALE: float = 1.0 # font scaling for point labels
 
 # -----------------------------------------------------------------------------
 # Viewport state
 # -----------------------------------------------------------------------------
+const ZOOM_STEP: float = 1.25
+const MIN_ZOOM: float = 0.05
+const MAX_ZOOM: float = 100.0
 
 var zoom: float = 1.0
 
+func set_zoom(new_zoom: float) -> void:
+	zoom = clampf(new_zoom, MIN_ZOOM, MAX_ZOOM)
+
+func zoom_in() -> void:
+	set_zoom(zoom * ZOOM_STEP)
+
+func zoom_out() -> void:
+	set_zoom(zoom / ZOOM_STEP)
+
+func get_world_scale() -> float:
+	return WORLD_SCALE * zoom
 
 func get_screen_origin() -> Vector2:
 	return size * 0.5
-
-func get_world_scale() -> float:
-	return WORLD_SCALE
 
 func get_viewport_font() -> Font:
 	return get_theme_default_font()
@@ -76,17 +86,17 @@ func _draw() -> void:
 
 
 func draw_axes() -> void:
-	var axis_length: float = 100.0
+	
 	var origin: Vector2 = get_screen_origin()
 	draw_line(
 		origin + Vector2(0.0, 0.0),
-		origin + Vector2(axis_length, 0.0),
+		origin + Vector2(AXIS_LENGTH, 0.0),
 		Color.RED,
 		2.0
 	)
 	draw_string(
 	get_viewport_font(),
-	origin + Vector2(axis_length/16, +axis_length/4+axis_length/16),
+	origin + Vector2(AXIS_LENGTH/16, +AXIS_LENGTH/4+AXIS_LENGTH/16)*2,
 	"X",
 	HORIZONTAL_ALIGNMENT_CENTER,
 	-1.0,
@@ -94,14 +104,14 @@ func draw_axes() -> void:
 	LABEL_COLOR
 	)
 	draw_line(
-		origin + Vector2(0.0, -axis_length),
+		origin + Vector2(0.0, -AXIS_LENGTH),
 		origin + Vector2(0.0, 0.0),
 		Color.GREEN_YELLOW,
 		2.0
 	)
 	draw_string(
 		get_viewport_font(),
-		origin + Vector2(-axis_length/4, -axis_length/16),
+		origin + Vector2(-AXIS_LENGTH/4, -AXIS_LENGTH/16)*2,
 		"Y",
 		HORIZONTAL_ALIGNMENT_RIGHT,
 		-10.0,
