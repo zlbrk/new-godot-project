@@ -1,8 +1,11 @@
 extends Control
 class_name GGViewport
 
+var model: GGModel = null # define document model referense
 
-
+# -----------------------------------------------------------------------------
+# Rendering constants
+# -----------------------------------------------------------------------------
 const POINT_RADIUS: float = 4.0 # just points size
 const POINT_COLOR: Color = Color.ANTIQUE_WHITE # just points color
 
@@ -12,11 +15,15 @@ const SCREEN_ORIGIN: Vector2 = Vector2(80, 80) # reasonable draft testing origin
 const LABEL_OFFSET: Vector2 = Vector2(8.0, -8.0)
 const LABEL_COLOR: Color = Color.WHITE
 
-var model: GGModel = null # define document model referense
-
-
 const AXIS_LABEL_FONT_SCALE: float = 1.0 # base theme font scaling for axis labels
 const POINT_LABEL_FONT_SCALE: float = 0.85 # font scaling for point labels
+
+# -----------------------------------------------------------------------------
+# Viewport state
+# -----------------------------------------------------------------------------
+
+var zoom: float = 1.0
+
 
 func get_screen_origin() -> Vector2:
 	return size * 0.5
