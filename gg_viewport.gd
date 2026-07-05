@@ -10,15 +10,23 @@ const WORLD_SCALE: float = 1000.0 # reasonable scale for models defined in mm
 const SCREEN_ORIGIN: Vector2 = Vector2(80, 80) # reasonable draft testing origin
 
 const LABEL_OFFSET: Vector2 = Vector2(8.0, -8.0)
-const LABEL_FONT_SIZE: int = 14
 const LABEL_COLOR: Color = Color.WHITE
 
 var model: GGModel = null # define document model referense
-var font: Font = get_theme_default_font()
+
 
 const AXIS_LABEL_FONT_SCALE: float = 1.0 # base theme font scaling for axis labels
 const POINT_LABEL_FONT_SCALE: float = 0.85 # font scaling for point labels
 
+func get_screen_origin() -> Vector2:
+	return size * 0.5
+
+func get_world_scale() -> float:
+	return WORLD_SCALE
+
+func get_viewport_font() -> Font:
+	return get_theme_default_font()
+	
 func get_base_font_size() -> int:
 	return get_theme_default_font_size()
 
@@ -33,8 +41,8 @@ func set_model(new_model: GGModel) -> void:
 
 func world_to_screen(point: GGPoint2D) -> Vector2:
 	var origin: Vector2 = get_screen_origin()
-	var screen_x: float = origin.x + point.x * WORLD_SCALE
-	var screen_y: float = origin.y - point.y * WORLD_SCALE
+	var screen_x: float = origin.x + point.x * get_world_scale()
+	var screen_y: float = origin.y - point.y * get_world_scale()
 	return Vector2(screen_x, screen_y)
 
 func _draw() -> void:
@@ -50,7 +58,7 @@ func _draw() -> void:
 			POINT_COLOR
 		)
 		draw_string(
-			font,
+			get_viewport_font(),
 			screen_position + LABEL_OFFSET,
 			str(point.id),
 			HORIZONTAL_ALIGNMENT_LEFT,
@@ -70,8 +78,8 @@ func draw_axes() -> void:
 		2.0
 	)
 	draw_string(
-	font,
-	origin + Vector2(20.0, 50.0),
+	get_viewport_font(),
+	origin + Vector2(axis_length/16, +axis_length/4+axis_length/16),
 	"X",
 	HORIZONTAL_ALIGNMENT_CENTER,
 	-1.0,
@@ -85,14 +93,11 @@ func draw_axes() -> void:
 		2.0
 	)
 	draw_string(
-		font,
-		origin + Vector2(-0.0, -50.0),
+		get_viewport_font(),
+		origin + Vector2(-axis_length/4, -axis_length/16),
 		"Y",
 		HORIZONTAL_ALIGNMENT_RIGHT,
 		-10.0,
 		get_scaled_font_size(AXIS_LABEL_FONT_SCALE),
 		LABEL_COLOR
 	)
-
-func get_screen_origin() -> Vector2:
-	return size * 0.5
