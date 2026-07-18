@@ -99,12 +99,54 @@ func execute_command(cmd: String) -> void:
 			cmd_zoom_out()
 		"set_zoom":
 			cmd_set_zoom(tokens)
+		"set_pan_offset":
+			cmd_set_pan_offset(tokens)
+		"pan_by":
+			cmd_pan_by(tokens)
+		"reset_view":
+			cmd_reset_viewport()
 
 		_:
 			print_list_item("Unknown command: " + command_name)
 # ========================================================
 # Implementations
 # ========================================================
+func cmd_reset_viewport() -> void:
+	gg_viewport.reset_view()
+	gg_viewport.queue_redraw()
+	print_list_item("Viewport reset to default zoom and pan offset.")
+
+func cmd_pan_by (tokens: PackedStringArray) -> void:
+	if tokens.size() != 3:
+		print_line("Usage: pan_by <delta_x> <delta_y>")
+		return
+	var delta_x_text: String = tokens[1]
+	var delta_y_text: String = tokens[2]
+	if not delta_x_text.is_valid_float() or not delta_y_text.is_valid_float():
+		print_line("Invalid pan delta values.")
+		return
+	var delta_x: float = delta_x_text.to_float()
+	var delta_y: float = delta_y_text.to_float()
+	gg_viewport.pan_by(Vector2(delta_x, -delta_y))
+	gg_viewport.queue_redraw()
+	print_list_item("Panned by (%.2f, %.2f)" % [delta_x, delta_y])
+
+func cmd_set_pan_offset(tokens: PackedStringArray) -> void:
+	if tokens.size() != 3:
+		print_line("Usage: set_pan_offset <x> <y>")
+		return
+	var x_text: String = tokens[1]
+	var y_text: String = tokens[2]
+	var offset_x: float = x_text.to_float()
+	var offset_y: float = y_text.to_float()
+	if not x_text.is_valid_float() or not y_text.is_valid_float():
+		print_line("Invalid pan offset values.")
+		return
+	var new_offset: Vector2 = Vector2(offset_x, -offset_y)
+	gg_viewport.set_pan_offset(new_offset)
+	gg_viewport.queue_redraw()
+	print_list_item("Pan offset set to (%.2f, %.2f)" % [offset_x, offset_y])
+
 func cmd_set_zoom(tokens: PackedStringArray) -> void:
 	if tokens.size() != 2:
 		print_line("Usage: set_zoom <zoom_level>")
@@ -233,6 +275,9 @@ func cmd_help() -> void:
 	print_list_item("zoom_in")
 	print_list_item("zoom_out")
 	print_list_item("set_zoom")
+	print_list_item("set_pan_offset")
+	print_list_item("pan_by")
+	print_list_item("reset_view")
 
 
 func print_line(text: String) -> void:

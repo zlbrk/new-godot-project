@@ -25,6 +25,17 @@ const MIN_ZOOM: float = 0.05
 const MAX_ZOOM: float = 100.0
 
 var zoom: float = 1.0
+var pan_offset: Vector2 = Vector2.ZERO
+
+func reset_view() -> void:
+	zoom = 1.0
+	pan_offset = Vector2.ZERO
+
+func pan_by (delta: Vector2) -> void:
+	pan_offset += delta
+
+func set_pan_offset (new_offset: Vector2) -> void:
+	pan_offset = new_offset
 
 func set_zoom(new_zoom: float) -> void:
 	zoom = clampf(new_zoom, MIN_ZOOM, MAX_ZOOM)
@@ -39,7 +50,7 @@ func get_world_scale() -> float:
 	return WORLD_SCALE * zoom
 
 func get_screen_origin() -> Vector2:
-	return size * 0.5
+	return size * 0.5 + pan_offset
 
 func get_viewport_font() -> Font:
 	return get_theme_default_font()
