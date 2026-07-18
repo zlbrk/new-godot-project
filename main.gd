@@ -4,6 +4,7 @@ var command_history: Array[String] = []
 var console_lines: Array[String] = []
 var history_index: int = 0
 var model: GGModel
+var is_mouse_panning: bool = false
 
 @onready var console_output: RichTextLabel = %ConsoleOutput
 @onready var command_line: LineEdit = %CommandLine
@@ -17,6 +18,7 @@ func _ready() -> void:
 	gg_viewport.set_model(model)
 	command_line.text_submitted.connect(_on_command_submitted)
 	command_line.gui_input.connect(_on_command_line_gui_input)
+	gg_viewport.gui_input.connect(_on_gg_viewport_gui_input)
 
 	print_line("GG Editor shell initialized.")
 	print_line("Type 'help' for available commands.")
@@ -56,7 +58,39 @@ func _on_command_line_gui_input(event: InputEvent) -> void:
 				show_next_command()
 				command_line.accept_event()
 
-# User functions
+
+
+# Private GUI functions
+func _on_gg_viewport_gui_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton:
+		var mouse_event: InputEventMouseButton = event as InputEventMouseButton
+
+		match mouse_event.button_index:
+			MOUSE_BUTTON_MIDDLE:
+				is_mouse_panning = mouse_event.pressed
+				gg_viewport.accept_event()
+
+			MOUSE_BUTTON_WHEEL_UP:
+				if mouse_event.pressed:
+					gg_viewport.zoom_in_at(mouse_event.position)
+					gg_viewport.queue_redraw()
+					gg_viewport.accept_event()
+
+			MOUSE_BUTTON_WHEEL_DOWN:
+				if mouse_event.pressed:
+					gg_viewport.zoom_out_at(mouse_event.position)
+					gg_viewport.queue_redraw()
+					gg_viewport.accept_event()
+
+		return
+
+	if event is InputEventMouseMotion and is_mouse_panning:
+		var motion_event: InputEventMouseMotion = event as InputEventMouseMotion
+
+		gg_viewport.pan_by(motion_event.relative)
+		gg_viewport.queue_redraw()
+		gg_viewport.accept_event()
+
 func add_command_to_history(cmd: String) -> void:
 	command_history.append(cmd)
 	history_index = command_history.size()
@@ -104,19 +138,20 @@ func execute_command(cmd: String) -> void:
 		"pan_by":
 			cmd_pan_by(tokens)
 		"reset_view":
-			cmd_reset_viewport()
+			cmd_reset_view()
 
 		_:
 			print_list_item("Unknown command: " + command_name)
 # ========================================================
-# Implementations
+# User functions
+# implementation
 # ========================================================
-func cmd_reset_viewport() -> void:
+func cmd_reset_view() -> void:
 	gg_viewport.reset_view()
 	gg_viewport.queue_redraw()
 	print_list_item("Viewport reset to default zoom and pan offset.")
 
-func cmd_pan_by (tokens: PackedStringArray) -> void:
+func cmd_pan_by(tokens: PackedStringArray) -> void:
 	if tokens.size() != 3:
 		print_line("Usage: pan_by <delta_x> <delta_y>")
 		return
