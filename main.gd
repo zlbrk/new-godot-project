@@ -6,6 +6,10 @@ var history_index: int = 0
 var model: GGModel
 var is_mouse_panning: bool = false
 
+const INITIAL_WIDTH_FRACTION: float = 0.75
+const WINDOW_ASPECT_RATIO: float = 1152.0 / 648.0
+const MAX_HEIGHT_FRACTION: float = 0.90
+
 @onready var console_output: RichTextLabel = %ConsoleOutput
 @onready var command_line: LineEdit = %CommandLine
 @onready var status_label: Label = %StatusLabel
@@ -14,6 +18,9 @@ var is_mouse_panning: bool = false
 
 # Godot specific private function for main CLI widget init
 func _ready() -> void:
+	get_viewport().size_changed.connect(_on_viewport_size_changed)
+	call_deferred("_configure_initial_window")
+
 	model = GGModel.new()
 	gg_viewport.set_model(model)
 	command_line.text_submitted.connect(_on_command_submitted)
@@ -23,6 +30,81 @@ func _ready() -> void:
 	print_line("GG Editor shell initialized.")
 	print_line("Type 'help' for available commands.")
 	refocus_command_line()
+
+# Window initialization and diagnostics.
+
+func _configure_initial_window() -> void:
+	var mode: int = DisplayServer.window_get_mode()
+
+	if mode == DisplayServer.WINDOW_MODE_WINDOWED:
+		var screen_id: int = DisplayServer.window_get_current_screen()
+		var usable_rect: Rect2i = DisplayServer.screen_get_usable_rect(screen_id)
+
+		var target_width: int = roundi(
+			float(usable_rect.size.x) * INITIAL_WIDTH_FRACTION
+		)
+		var target_height: int = roundi(
+			float(target_width) / WINDOW_ASPECT_RATIO
+		)
+		var max_height: int = roundi(
+			float(usable_rect.size.y) * MAX_HEIGHT_FRACTION
+		)
+
+		if target_height > max_height:
+			target_height = max_height
+			target_width = roundi(
+				float(target_height) * WINDOW_ASPECT_RATIO
+			)
+
+		# Final safety clamp: the requested window must fit the usable screen area.
+		target_width = mini(target_width, usable_rect.size.x)
+		target_height = mini(target_height, usable_rect.size.y)
+
+		var target_size: Vector2i = Vector2i(target_width, target_height)
+		var target_position: Vector2i = usable_rect.position + Vector2i(
+			roundi(float(usable_rect.size.x - target_size.x) * 0.5),
+			roundi(float(usable_rect.size.y - target_size.y) * 0.5)
+		)
+
+		DisplayServer.window_set_size(target_size)
+		DisplayServer.window_set_position(target_position)
+
+	# Diagnostics are required in every startup mode:
+	# windowed, maximized, fullscreen, and exclusive fullscreen.
+	call_deferred("_update_window_diagnostics")
+
+
+func _on_viewport_size_changed() -> void:
+	call_deferred("_update_window_diagnostics")
+
+
+func _update_window_diagnostics() -> void:
+	var window: Window = get_window()
+	var viewport_size: Vector2 = get_viewport().get_visible_rect().size
+	var mode: int = DisplayServer.window_get_mode()
+
+	status_label.text = (
+		"Mode: %s | Window: %s | Viewport: %s"
+		% [
+			_get_window_mode_name(mode),
+			str(window.size),
+			str(viewport_size)
+		]
+	)
+
+
+func _get_window_mode_name(mode: int) -> String:
+	match mode:
+		DisplayServer.WINDOW_MODE_WINDOWED:
+			return "windowed"
+		DisplayServer.WINDOW_MODE_MAXIMIZED:
+			return "maximized"
+		DisplayServer.WINDOW_MODE_FULLSCREEN:
+			return "fullscreen"
+		DisplayServer.WINDOW_MODE_EXCLUSIVE_FULLSCREEN:
+			return "exclusive fullscreen"
+		_:
+			return "unknown"
 
 # Private CLI functions
 func _on_command_submitted(command: String) -> void:

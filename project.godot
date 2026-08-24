@@ -14,12 +14,3 @@ config/name="GG CAD"
 run/main_scene="uid://dhatlpjy83eyd"
 config/features=PackedStringArray("4.5", "Forward Plus")
 config/icon="res://icon.svg"
-
-[display]
-
-window/size/viewport_width=2048
-window/size/viewport_height=1200
-
-[gui]
-
-theme/default_theme_scale=2.0
