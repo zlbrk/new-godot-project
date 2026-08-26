@@ -18,8 +18,10 @@ const MAX_HEIGHT_FRACTION: float = 0.90
 
 # Godot specific private function for main CLI widget init
 func _ready() -> void:
+	GGTheme.apply_application_theme(self)
 	get_viewport().size_changed.connect(_on_viewport_size_changed)
 	call_deferred("_configure_initial_window")
+	_print_display_diagnostics()
 
 	model = GGModel.new()
 	gg_viewport.set_model(model)
@@ -31,6 +33,17 @@ func _ready() -> void:
 	print_line("Type 'help' for available commands.")
 	refocus_command_line()
 
+
+func _print_display_diagnostics() -> void:
+	var window := get_window()
+
+	print("=== Display diagnostics ===")
+	print("screen: ", window.current_screen)
+	print("screen scale: ", DisplayServer.screen_get_scale(window.current_screen))
+	print("screen DPI: ", DisplayServer.screen_get_dpi(window.current_screen))
+	print("window size: ", window.size)
+	print("viewport size: ", get_viewport().get_visible_rect().size)
+	print("===========================")
 # Window initialization and diagnostics.
 
 func _configure_initial_window() -> void:

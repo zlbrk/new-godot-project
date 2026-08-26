@@ -1,9 +1,9 @@
 [gd_scene load_steps=5 format=3 uid="uid://dhatlpjy83eyd"]
 
-[ext_resource type="Script" path="res://main.gd" id="1_ig7tw"]
-[ext_resource type="FontFile" path="res://FiraCode-SemiBold.ttf" id="2_0xm2m"]
-[ext_resource type="Script" path="res://gg_viewport.gd" id="2_1bvp3"]
-[ext_resource type="FontFile" path="res://FiraCode-Medium.ttf" id="3_h2yge"]
+[ext_resource type="Script" uid="uid://dc4ydfpga5lin" path="res://main.gd" id="1_ig7tw"]
+[ext_resource type="FontFile" uid="uid://bwwb3t3yf4ene" path="res://FiraCode-SemiBold.ttf" id="2_0xm2m"]
+[ext_resource type="Script" uid="uid://drwl7iq42w35s" path="res://gg_viewport.gd" id="2_1bvp3"]
+[ext_resource type="FontFile" uid="uid://btr5ccsf1ks5m" path="res://FiraCode-Medium.ttf" id="3_h2yge"]
 
 [node name="Main" type="Control"]
 layout_mode = 3
