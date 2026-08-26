@@ -282,8 +282,13 @@ func _on_command_line_gui_input(event: InputEvent) -> void:
 
 func _on_gg_viewport_gui_input(event: InputEvent) -> void:
 	if event is InputEventPanGesture:
+		var pan_event := event as InputEventPanGesture
+		print(
+			"[trackpad] InputEventPanGesture delta = ",
+			pan_event.delta
+		)
 		_handle_viewport_pan_gesture(
-			event as InputEventPanGesture
+			pan_event
 		)
 		return
 
@@ -345,7 +350,7 @@ func _handle_viewport_pan_gesture(
 	pan_event: InputEventPanGesture
 ) -> void:
 	var pan_delta: Vector2 = (
-		pan_event.delta * PAN_GESTURE_SCALE
+		-pan_event.delta * PAN_GESTURE_SCALE
 	)
 
 	if not pan_delta.is_zero_approx():
