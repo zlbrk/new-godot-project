@@ -77,9 +77,9 @@ func _ready() -> void:
 
 
 func _connect_signals() -> void:
-	get_viewport().size_changed.connect(
-		_on_viewport_size_changed
-	)
+	# get_viewport().size_changed.connect(
+	# 	_on_viewport_size_changed
+	# )
 
 	command_line.text_submitted.connect(
 		_on_command_submitted
@@ -187,33 +187,6 @@ func _configure_initial_window() -> void:
 		DisplayServer.window_set_size(target_size)
 		DisplayServer.window_set_position(target_position)
 
-	# Required in windowed, maximized, fullscreen,
-	# and exclusive fullscreen modes.
-	call_deferred("_update_window_diagnostics")
-
-
-func _on_viewport_size_changed() -> void:
-	call_deferred("_update_window_diagnostics")
-
-
-func _update_window_diagnostics() -> void:
-	var window: Window = get_window()
-
-	var viewport_size: Vector2 = (
-		get_viewport().get_visible_rect().size
-	)
-
-	var mode: int = DisplayServer.window_get_mode()
-
-	status_label.text = (
-		"Mode: %s | Window: %s | Viewport: %s"
-		% [
-			_get_window_mode_name(mode),
-			str(window.size),
-			str(viewport_size)
-		]
-	)
-
 
 func _get_window_mode_name(mode: int) -> String:
 	match mode:
@@ -283,10 +256,7 @@ func _on_command_line_gui_input(event: InputEvent) -> void:
 func _on_gg_viewport_gui_input(event: InputEvent) -> void:
 	if event is InputEventPanGesture:
 		var pan_event := event as InputEventPanGesture
-		print(
-			"[trackpad] InputEventPanGesture delta = ",
-			pan_event.delta
-		)
+
 		_handle_viewport_pan_gesture(
 			pan_event
 		)
@@ -496,6 +466,12 @@ func execute_command(cmd: String) -> void:
 
 		"reset_view":
 			cmd_reset_view()
+		
+		"save":
+			cmd_save_document()
+		
+		"load":
+			cmd_load_document(tokens)
 
 		_:
 			print_list_item(
@@ -626,6 +602,51 @@ func cmd_zoom_out() -> void:
 # ========================================================
 # Model commands
 # ========================================================
+func update_status_label() -> void:
+	var dirty_marker: String = "*" if model.is_dirty else ""
+	status_label.text = model.document_name + dirty_marker
+
+func cmd_load_document(tokens: PackedStringArray) -> void:
+	if (
+		tokens.size() != 2
+		or not tokens[1].is_valid_ascii_identifier()
+	):
+		print_line(
+			"Usage: load <document_name> without extension."
+		)
+		return
+
+	var doc_name: String = tokens[1]
+
+	if not model.load_document(doc_name):
+		print_line(
+			"Failed to load document %s.ggb."
+			% [doc_name]
+		)
+		return
+
+	update_status_label()
+	gg_viewport.queue_redraw()
+
+	print_line(
+		"Document %s loaded successfully."
+		% [model.document_name]
+	)
+
+
+func cmd_save_document() -> void:
+	if not model.save_document():
+		print_line(
+			"Failed to save document %s."
+			% [model.document_name]
+		)
+		return
+
+	print_line(
+		"Document %s saved successfully."
+		% [model.document_name]
+	)
+	update_status_label()
 
 func cmd_new(tokens: PackedStringArray) -> void:
 	if (
@@ -638,14 +659,14 @@ func cmd_new(tokens: PackedStringArray) -> void:
 	model.reset()
 
 	var new_name: String = tokens[1]
-	model.document_name = new_name + ".geo"
+	model.document_name = new_name + ".ggb"
 
 	print_line(
 		"%s document created."
 		% [model.document_name]
 	)
 
-	status_label.text = model.document_name
+	update_status_label()
 	gg_viewport.queue_redraw()
 
 
@@ -663,7 +684,7 @@ func cmd_rename(tokens: PackedStringArray) -> void:
 		% [new_name]
 	)
 
-	status_label.text = model.document_name
+	update_status_label()
 
 
 func cmd_add_point(
@@ -691,7 +712,7 @@ func cmd_add_point(
 
 	var point: GGPoint2D = model.add_point(px, py)
 
-	status_label.text = model.document_name
+	update_status_label()
 
 	print_list_item(
 		"Point %d added."
@@ -739,7 +760,7 @@ func cmd_move_point(
 		"Point %d moved to (%.3f, %.3f)."
 		% [point_id, x, y]
 	)
-
+	update_status_label()
 	gg_viewport.queue_redraw()
 
 
@@ -768,7 +789,7 @@ func cmd_remove_point(
 		"Point %d removed."
 		% [point_id]
 	)
-
+	update_status_label()
 	gg_viewport.queue_redraw()
 
 
@@ -776,6 +797,7 @@ func cmd_clear_points() -> void:
 	model.clear_points()
 
 	print_list_item("Points cleared.")
+	update_status_label()
 	gg_viewport.queue_redraw()
 
 
@@ -808,6 +830,8 @@ func cmd_help() -> void:
 	print_list_item("clear")
 	print_list_item("about")
 	print_list_item("new")
+	print_list_item("save")
+	print_list_item("load")
 	print_list_item("history")
 	print_list_item("status")
 	print_list_item("rename")
