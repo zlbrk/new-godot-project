@@ -24,6 +24,7 @@ func add_point(x: float, y: float) -> GGPoint2D:
 
 func clear_points() -> void:
 	points.clear()
+	next_point_id = 1
 	is_dirty = true
 
 func move_point(point_id: int, x: float, y: float) -> bool:
@@ -118,4 +119,4 @@ func load_document(doc_name: String) -> bool:
 	points = loaded_points
 	is_dirty = false
 
-	return true
+	return true	

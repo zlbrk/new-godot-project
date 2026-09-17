@@ -653,10 +653,11 @@ func cmd_new(tokens: PackedStringArray) -> void:
 		tokens.size() != 2
 		or not tokens[1].is_valid_ascii_identifier()
 	):
-		print_line("Usage: new <filename>")
+		print_line("Usage: new <filename> without extension.")
 		return
 
 	model.reset()
+	update_status_label()
 
 	var new_name: String = tokens[1]
 	model.document_name = new_name + ".ggb"
@@ -672,7 +673,7 @@ func cmd_new(tokens: PackedStringArray) -> void:
 
 func cmd_rename(tokens: PackedStringArray) -> void:
 	if tokens.size() != 2:
-		print_line("Usage: rename <filename>")
+		print_line("Usage: rename <filename> without extension")
 		return
 
 	var new_name: String = tokens[1]
