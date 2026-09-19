@@ -229,6 +229,20 @@ func _handle_viewport_mouse_motion(motion_event: InputEventMouseMotion) -> void:
 		gg_viewport.queue_redraw()
 		gg_viewport.accept_event()
 
+func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventKey and event.is_pressed() and not event.is_echo():
+		if event.keycode == KEY_F and event.is_command_or_control_pressed():
+			_toggle_fullscreen()
+			get_viewport().set_input_as_handled()
+
+
+## Переключает режим отображения между оконным и полноэкранным
+func _toggle_fullscreen() -> void:
+	var current_mode: DisplayServer.WindowMode = DisplayServer.window_get_mode()
+	if current_mode == DisplayServer.WINDOW_MODE_FULLSCREEN or current_mode == DisplayServer.WINDOW_MODE_EXCLUSIVE_FULLSCREEN:
+		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
+	else:
+		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
 
 # ========================================================
 # Command loop

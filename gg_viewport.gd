@@ -106,47 +106,68 @@ func get_viewport_font() -> Font:
 	return get_theme_default_font()
 
 
+## Отрисовывает направленный вектор со стреловидным наконечником
+func _draw_arrow(
+	from: Vector2,
+	to: Vector2,
+	color: Color,
+	line_width: float,
+	arrow_size: float
+) -> void:
+	var delta: Vector2 = to - from
+	var length: float = delta.length()
+	if length < arrow_size or delta.is_zero_approx():
+		return
+
+	var dir: Vector2 = delta / length
+	var normal: Vector2 = Vector2(-dir.y, dir.x)
+
+	# Основание наконечника стрелки
+	var arrow_base: Vector2 = to - dir * arrow_size
+	var half_width: float = arrow_size * 0.4
+
+	var left_wing: Vector2 = arrow_base + normal * half_width
+	var right_wing: Vector2 = arrow_base - normal * half_width
+
+	# 1. Стержень оси (ведем до основания стрелки, чтобы торец линии не торчал из острия)
+	draw_line(from, arrow_base, color, line_width, true)
+
+	# 2. Залитый наконечник стрелки
+	var triangle_points: PackedVector2Array = PackedVector2Array([to, left_wing, right_wing])
+	draw_colored_polygon(triangle_points, color)
+
+
 func draw_axes() -> void:
-	var origin: Vector2 = get_screen_origin()
-	var axis_length: float = GGTheme.axis_length()
-	var axis_width: float = GGTheme.axis_width()
 	var font: Font = get_viewport_font()
+	var font_size: int = GGTheme.axis_label_font_size()
+	var axis_len: float = GGTheme.axis_length()
+	var axis_w: float = GGTheme.axis_width()
+	var arrow_size: float = axis_w * 4.0
+	var gap: float = float(font_size) * 0.4
 
-	draw_line(
-		origin,
-		origin + Vector2.RIGHT * axis_length,
-		GGTheme.X_AXIS_COLOR,
-		axis_width
+	var origin: Vector2 = world_to_screen(GGPoint2D.new(0, 0.0, 0.0))
+	var x_end: Vector2 = origin + Vector2(axis_len, 0.0)
+	var y_end: Vector2 = origin + Vector2(0.0, -axis_len)
+
+	# 1. Отрисовка координатных стрелок с наконечниками
+	_draw_arrow(origin, x_end, GGTheme.X_AXIS_COLOR, axis_w, arrow_size)
+	_draw_arrow(origin, y_end, GGTheme.Y_AXIS_COLOR, axis_w, arrow_size)
+
+	# 2. Метка оси X: справа от острия, центрирована по высоте линии
+	var x_text_size: Vector2 = font.get_string_size("X", HORIZONTAL_ALIGNMENT_LEFT, -1, font_size)
+	var x_pos: Vector2 = Vector2(
+		x_end.x + gap,
+		x_end.y + x_text_size.y * 0.35
 	)
+	draw_string(font, x_pos, "X", HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, GGTheme.X_AXIS_COLOR)
 
-	draw_string(
-		font,
-		origin + Vector2(axis_length * 0.25, axis_length * 0.625),
-		"X",
-		HORIZONTAL_ALIGNMENT_CENTER,
-		-1.0,
-		GGTheme.axis_label_font_size(),
-		GGTheme.LABEL_COLOR
+	# 3. Метка оси Y: выше острия, центрирована по ширине стрелки
+	var y_text_size: Vector2 = font.get_string_size("Y", HORIZONTAL_ALIGNMENT_LEFT, -1, font_size)
+	var y_pos: Vector2 = Vector2(
+		y_end.x - y_text_size.x * 0.5,
+		y_end.y - gap
 	)
-
-	draw_line(
-		origin + Vector2.UP * axis_length,
-		origin,
-		GGTheme.Y_AXIS_COLOR,
-		axis_width
-	)
-
-	draw_string(
-		font,
-		origin + Vector2(-axis_length * 0.5, -axis_length * 0.125),
-		"Y",
-		HORIZONTAL_ALIGNMENT_RIGHT,
-		-10.0,
-		GGTheme.axis_label_font_size(),
-		GGTheme.LABEL_COLOR
-	)
-
-
+	draw_string(font, y_pos, "Y", HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, GGTheme.Y_AXIS_COLOR)
 func draw_points() -> void:
 	if model == null:
 		return
@@ -192,6 +213,43 @@ func draw_lines() -> void:
 
 		draw_line(start_screen, end_screen, line_color, line_w, true)
 
+
+func draw_line_labels() -> void:
+	if model == null:
+		return
+
+	var font: Font = ThemeDB.fallback_font
+	var font_size: int = GGTheme.line_label_font_size()
+	var label_color: Color = GGTheme.LINE_COLOR
+
+	for line: GGLine2D in model.lines:
+		var p_start: GGPoint2D = model.get_point_by_id(line.start_point_id)
+		var p_end: GGPoint2D = model.get_point_by_id(line.end_point_id)
+
+		if p_start == null or p_end == null:
+			continue
+
+		var start_screen: Vector2 = world_to_screen(p_start)
+		var end_screen: Vector2 = world_to_screen(p_end)
+
+		var delta: Vector2 = end_screen - start_screen
+		if delta.is_zero_approx():
+			continue
+
+		# Вычисляем середину отрезка на экране
+		var mid_point: Vector2 = (start_screen + end_screen) * 0.5
+
+		# Единичный вектор нормали для смещения текста перпендикулярно отрезку
+		var normal: Vector2 = -Vector2(-delta.y, delta.x).normalized()
+		var offset_dist: float = float(font_size) * 0.75
+		var label_center: Vector2 = mid_point + normal * offset_dist
+
+		# Центрируем строку относительно расчетной точки
+		var text: String = str(line.id)
+		var text_size: Vector2 = font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size)
+		var text_pos: Vector2 = label_center - Vector2(text_size.x * 0.5, -text_size.y * 0.3)
+
+		draw_string(font, text_pos, text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, label_color)
 # -----------------------------------------------------------------------------
 # Godot callbacks
 # -----------------------------------------------------------------------------
@@ -199,4 +257,5 @@ func draw_lines() -> void:
 func _draw() -> void:
 	draw_axes()
 	draw_lines()
+	draw_line_labels()
 	draw_points()

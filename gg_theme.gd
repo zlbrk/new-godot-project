@@ -11,14 +11,16 @@ const BASE_APPLICATION_FONT_SIZE: int = 16
 # -----------------------------------------------------------------------------
 # Viewport metrics at ui_scale == 1.0
 # -----------------------------------------------------------------------------
+const BASE_FONT: Font = preload("res://FiraCode-Medium.ttf")
 const BASE_LINE_WIDTH: float = 1.5
+const BASE_LINE_LABEL_FONT_SIZE: int = 14
 const BASE_POINT_RADIUS: float = 4.0
 const BASE_AXIS_WIDTH: float = 2.0
-const BASE_AXIS_LENGTH: float = 50.0
+const BASE_AXIS_LENGTH: float = 25.0
 
 const BASE_LABEL_OFFSET: Vector2 = Vector2(8.0, -8.0)
+const BASE_LABEL_FONT_SIZE: int = 16
 const BASE_AXIS_LABEL_FONT_SIZE: int = 14
-const BASE_POINT_LABEL_FONT_SIZE: int = 16
 
 # -----------------------------------------------------------------------------
 # Colors
@@ -53,12 +55,16 @@ static func line_width() -> float:
 	return scaled_pixels(BASE_LINE_WIDTH)
 
 
+static func line_label_font_size() -> int:
+	return scaled_font_size(BASE_LABEL_FONT_SIZE)
+
 # -----------------------------------------------------------------------------
 # Godot Control theme
 # -----------------------------------------------------------------------------
 
 static func create_application_theme() -> Theme:
 	var application_theme: Theme = Theme.new()
+	application_theme.default_font = BASE_FONT
 	application_theme.default_font_size = scaled_font_size(
 		BASE_APPLICATION_FONT_SIZE
 	)
@@ -94,4 +100,4 @@ static func axis_label_font_size() -> int:
 
 
 static func point_label_font_size() -> int:
-	return scaled_font_size(BASE_POINT_LABEL_FONT_SIZE)
+	return scaled_font_size(BASE_LABEL_FONT_SIZE)
