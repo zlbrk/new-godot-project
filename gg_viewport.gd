@@ -173,10 +173,30 @@ func draw_points() -> void:
 			GGTheme.LABEL_COLOR
 		)
 
+func draw_lines() -> void:
+	if model == null:
+		return
+
+	var line_color: Color = GGTheme.LINE_COLOR
+	var line_w: float = GGTheme.line_width()
+
+	for line: GGLine2D in model.lines:
+		var p_start: GGPoint2D = model.get_point_by_id(line.start_point_id)
+		var p_end: GGPoint2D = model.get_point_by_id(line.end_point_id)
+
+		if p_start == null or p_end == null:
+			continue
+
+		var start_screen: Vector2 = world_to_screen(p_start)
+		var end_screen: Vector2 = world_to_screen(p_end)
+
+		draw_line(start_screen, end_screen, line_color, line_w, true)
+
 # -----------------------------------------------------------------------------
 # Godot callbacks
 # -----------------------------------------------------------------------------
 
 func _draw() -> void:
 	draw_axes()
+	draw_lines()
 	draw_points()

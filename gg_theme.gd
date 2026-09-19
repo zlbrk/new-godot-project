@@ -11,7 +11,7 @@ const BASE_APPLICATION_FONT_SIZE: int = 16
 # -----------------------------------------------------------------------------
 # Viewport metrics at ui_scale == 1.0
 # -----------------------------------------------------------------------------
-
+const BASE_LINE_WIDTH: float = 1.5
 const BASE_POINT_RADIUS: float = 4.0
 const BASE_AXIS_WIDTH: float = 2.0
 const BASE_AXIS_LENGTH: float = 50.0
@@ -24,6 +24,7 @@ const BASE_POINT_LABEL_FONT_SIZE: int = 16
 # Colors
 # -----------------------------------------------------------------------------
 
+const LINE_COLOR: Color = Color.DEEP_SKY_BLUE
 const POINT_COLOR: Color = Color.ANTIQUE_WHITE
 const LABEL_COLOR: Color = Color.WHITE
 const X_AXIS_COLOR: Color = Color.RED
@@ -46,6 +47,11 @@ static func scaled_pixels(base_value: float) -> float:
 
 static func scaled_font_size(base_size: int) -> int:
 	return maxi(1, roundi(float(base_size) * ui_scale()))
+
+
+static func line_width() -> float:
+	return scaled_pixels(BASE_LINE_WIDTH)
+
 
 # -----------------------------------------------------------------------------
 # Godot Control theme
