@@ -4,7 +4,6 @@ extends RefCounted
 # -----------------------------------------------------------------------------
 # Application scale
 # -----------------------------------------------------------------------------
-
 const BASE_UI_SCALE: float = 1.0
 const BASE_APPLICATION_FONT_SIZE: int = 16
 
@@ -17,29 +16,28 @@ const BASE_LINE_LABEL_FONT_SIZE: int = 14
 const BASE_POINT_RADIUS: float = 4.0
 const BASE_AXIS_WIDTH: float = 2.0
 const BASE_AXIS_LENGTH: float = 25.0
-
 const BASE_LABEL_OFFSET: Vector2 = Vector2(8.0, -8.0)
 const BASE_LABEL_FONT_SIZE: int = 16
 const BASE_AXIS_LABEL_FONT_SIZE: int = 14
+const BASE_LOOP_LABEL_FONT_SIZE: int = 14
 
 # -----------------------------------------------------------------------------
 # Colors
 # -----------------------------------------------------------------------------
-
 const LINE_COLOR: Color = Color.DEEP_SKY_BLUE
 const POINT_COLOR: Color = Color.ANTIQUE_WHITE
 const LABEL_COLOR: Color = Color.WHITE
 const X_AXIS_COLOR: Color = Color.RED
 const Y_AXIS_COLOR: Color = Color.GREEN_YELLOW
+const LOOP_FILL_COLOR: Color = Color(0.0, 0.75, 1.0, 0.12)
+const LOOP_LABEL_COLOR: Color = Color(0.4, 0.85, 1.0, 0.85)
 
 # -----------------------------------------------------------------------------
 # Scale
 # -----------------------------------------------------------------------------
-
 static func ui_scale() -> float:
 	var screen_id: int = DisplayServer.window_get_current_screen()
 	var screen_scale: float = DisplayServer.screen_get_scale(screen_id)
-
 	return maxf(BASE_UI_SCALE, screen_scale)
 
 
@@ -58,27 +56,28 @@ static func line_width() -> float:
 static func line_label_font_size() -> int:
 	return scaled_font_size(BASE_LABEL_FONT_SIZE)
 
+
+static func loop_label_font_size() -> int:
+	return scaled_font_size(BASE_LOOP_LABEL_FONT_SIZE)
+
+
 # -----------------------------------------------------------------------------
 # Godot Control theme
 # -----------------------------------------------------------------------------
-
 static func create_application_theme() -> Theme:
 	var application_theme: Theme = Theme.new()
 	application_theme.default_font = BASE_FONT
-	application_theme.default_font_size = scaled_font_size(
-		BASE_APPLICATION_FONT_SIZE
-	)
-
+	application_theme.default_font_size = scaled_font_size(BASE_APPLICATION_FONT_SIZE)
 	return application_theme
 
 
 static func apply_application_theme(root: Control) -> void:
 	root.theme = create_application_theme()
 
+
 # -----------------------------------------------------------------------------
 # Viewport metrics
 # -----------------------------------------------------------------------------
-
 static func point_radius() -> float:
 	return scaled_pixels(BASE_POINT_RADIUS)
 
