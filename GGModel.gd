@@ -14,6 +14,9 @@ var next_line_id: int = 1
 var loops: Array[GGLoop2D] = []
 var next_loop_id: int = 1
 
+var surfaces: Array[GGSurface2D] = []
+var next_surface_id: int = 1
+
 
 func reset() -> void:
 	document_name = "Untitled.ggb"
@@ -25,6 +28,8 @@ func reset() -> void:
 	next_line_id = 1
 	loops.clear()
 	next_loop_id = 1
+	surfaces.clear()
+	next_surface_id = 1
 
 
 # -----------------------------------------------------------------------------
@@ -43,15 +48,6 @@ func add_point(x: float, y: float) -> GGPoint2D:
 	next_point_id += 1
 	is_dirty = true
 	return point
-
-
-func clear_points() -> bool:
-	if not lines.is_empty():
-		return false
-	points.clear()
-	next_point_id = 1
-	is_dirty = true
-	return true
 
 
 func move_point(point_id: int, x: float, y: float) -> bool:
@@ -73,6 +69,15 @@ func remove_point(point_id: int) -> bool:
 			is_dirty = true
 			return true
 	return false
+
+
+func clear_points() -> bool:
+	if not lines.is_empty():
+		return false
+	points.clear()
+	next_point_id = 1
+	is_dirty = true
+	return true
 
 
 # -----------------------------------------------------------------------------
@@ -127,8 +132,6 @@ func get_loop_by_id(loop_id: int) -> GGLoop2D:
 	return null
 
 
-## Валидирует цепочку знаковых линий. Возвращает пустую строку при успехе
-## либо текст ошибки топологической непрерывности/замкнутости.
 func validate_loop_candidate(signed_line_ids: Array[int]) -> String:
 	if signed_line_ids.size() < 3:
 		return "Loop must contain at least 3 line segments."
@@ -174,6 +177,8 @@ func add_loop(signed_line_ids: Array[int]) -> GGLoop2D:
 
 
 func remove_loop(loop_id: int) -> bool:
+	if is_loop_used(loop_id):
+		return false
 	for index: int in range(loops.size()):
 		if loops[index].id == loop_id:
 			loops.remove_at(index)
@@ -182,13 +187,15 @@ func remove_loop(loop_id: int) -> bool:
 	return false
 
 
-func clear_loops() -> void:
+func clear_loops() -> bool:
+	if not surfaces.is_empty():
+		return false
 	loops.clear()
 	next_loop_id = 1
 	is_dirty = true
+	return true
 
 
-## Возвращает упорядоченный список точек вдоль контура петли
 func get_loop_points(loop: GGLoop2D) -> Array[GGPoint2D]:
 	var loop_pts: Array[GGPoint2D] = []
 	for signed_id: int in loop.signed_line_ids:
@@ -203,7 +210,6 @@ func get_loop_points(loop: GGLoop2D) -> Array[GGPoint2D]:
 	return loop_pts
 
 
-## Вычисляет геометрический центроид полигона петли в мировых координатах
 func get_loop_centroid(loop: GGLoop2D) -> Vector2:
 	var pts: Array[GGPoint2D] = get_loop_points(loop)
 	var count: int = pts.size()
@@ -228,14 +234,77 @@ func get_loop_centroid(loop: GGLoop2D) -> Vector2:
 
 
 # -----------------------------------------------------------------------------
-# Topology inspection
+# Surfaces management (CRUD)
+# -----------------------------------------------------------------------------
+func get_surface_by_id(surface_id: int) -> GGSurface2D:
+	for surface: GGSurface2D in surfaces:
+		if surface.id == surface_id:
+			return surface
+	return null
+
+
+func validate_surface_candidate(loop_ids: Array[int]) -> String:
+	if loop_ids.is_empty():
+		return "Surface must contain at least one boundary loop."
+	var unique_loops: Dictionary = {}
+	for lid: int in loop_ids:
+		if lid <= 0:
+			return "Loop ID must be a positive integer."
+		if get_loop_by_id(lid) == null:
+			return "Loop %d does not exist." % [lid]
+		if unique_loops.has(lid):
+			return "Duplicate loop reference %d in surface." % [lid]
+		unique_loops[lid] = true
+	return ""
+
+
+func add_surface(loop_ids: Array[int]) -> GGSurface2D:
+	var err: String = validate_surface_candidate(loop_ids)
+	if not err.is_empty():
+		return null
+	var surface: GGSurface2D = GGSurface2D.new(next_surface_id, loop_ids)
+	surfaces.append(surface)
+	next_surface_id += 1
+	is_dirty = true
+	return surface
+
+
+func update_surface(surface_id: int, new_loop_ids: Array[int]) -> String:
+	var surface: GGSurface2D = get_surface_by_id(surface_id)
+	if surface == null:
+		return "Surface %d not found." % [surface_id]
+	var err: String = validate_surface_candidate(new_loop_ids)
+	if not err.is_empty():
+		return err
+	surface.loop_ids = new_loop_ids
+	is_dirty = true
+	return ""
+
+
+func remove_surface(surface_id: int) -> bool:
+	for index: int in range(surfaces.size()):
+		if surfaces[index].id == surface_id:
+			surfaces.remove_at(index)
+			is_dirty = true
+			return true
+	return false
+
+
+func clear_surfaces() -> void:
+	surfaces.clear()
+	next_surface_id = 1
+	is_dirty = true
+
+
+# -----------------------------------------------------------------------------
+# Topology inspection and cascade safeguards
 # -----------------------------------------------------------------------------
 func get_lines_referencing_point(point_id: int) -> Array[int]:
-	var referencing_line_ids: Array[int] = []
+	var referencing: Array[int] = []
 	for line: GGLine2D in lines:
 		if line.start_point_id == point_id or line.end_point_id == point_id:
-			referencing_line_ids.append(line.id)
-	return referencing_line_ids
+			referencing.append(line.id)
+	return referencing
 
 
 func is_point_used(point_id: int) -> bool:
@@ -263,6 +332,21 @@ func is_line_used(line_id: int) -> bool:
 	return false
 
 
+func get_surfaces_referencing_loop(loop_id: int) -> Array[int]:
+	var referencing: Array[int] = []
+	for surface: GGSurface2D in surfaces:
+		if loop_id in surface.loop_ids:
+			referencing.append(surface.id)
+	return referencing
+
+
+func is_loop_used(loop_id: int) -> bool:
+	for surface: GGSurface2D in surfaces:
+		if loop_id in surface.loop_ids:
+			return true
+	return false
+
+
 func validate_topology() -> Array[String]:
 	var errors: Array[String] = []
 	for line: GGLine2D in lines:
@@ -277,6 +361,11 @@ func validate_topology() -> Array[String]:
 		var loop_err: String = validate_loop_candidate(loop.signed_line_ids)
 		if not loop_err.is_empty():
 			errors.append("Loop %d invalid: %s" % [loop.id, loop_err])
+
+	for surface: GGSurface2D in surfaces:
+		var surf_err: String = validate_surface_candidate(surface.loop_ids)
+		if not surf_err.is_empty():
+			errors.append("Surface %d invalid: %s" % [surface.id, surf_err])
 	return errors
 
 
@@ -311,6 +400,14 @@ func export_geo_file(target_filename: String) -> bool:
 			for signed_id: int in loop.signed_line_ids:
 				formatted_ids.append(str(signed_id))
 			file.store_line("Curve Loop(%d) = {%s};" % [loop.id, ", ".join(formatted_ids)])
+	if not surfaces.is_empty():
+		file.store_line("")
+		file.store_line("// Plane Surfaces")
+		for surface: GGSurface2D in surfaces:
+			var formatted_lids: PackedStringArray = PackedStringArray()
+			for lid: int in surface.loop_ids:
+				formatted_lids.append(str(lid))
+			file.store_line("Plane Surface(%d) = {%s};" % [surface.id, ", ".join(formatted_lids)])
 	file.close()
 	return true
 
@@ -326,20 +423,20 @@ func save_document() -> bool:
 	file.store_var(document_name)
 	file.store_var(units)
 	file.store_var(next_point_id)
-	# Points block
+	# Points
 	file.store_var(points.size())
 	for point: GGPoint2D in points:
 		file.store_var(point.id)
 		file.store_var(point.x)
 		file.store_var(point.y)
-	# Lines block
+	# Lines
 	file.store_var(next_line_id)
 	file.store_var(lines.size())
 	for line: GGLine2D in lines:
 		file.store_var(line.id)
 		file.store_var(line.start_point_id)
 		file.store_var(line.end_point_id)
-	# Loops block
+	# Loops
 	file.store_var(next_loop_id)
 	file.store_var(loops.size())
 	for loop: GGLoop2D in loops:
@@ -347,6 +444,14 @@ func save_document() -> bool:
 		file.store_var(loop.signed_line_ids.size())
 		for signed_id: int in loop.signed_line_ids:
 			file.store_var(signed_id)
+	# Surfaces
+	file.store_var(next_surface_id)
+	file.store_var(surfaces.size())
+	for surface: GGSurface2D in surfaces:
+		file.store_var(surface.id)
+		file.store_var(surface.loop_ids.size())
+		for lid: int in surface.loop_ids:
+			file.store_var(lid)
 	file.close()
 	is_dirty = false
 	return true
@@ -406,14 +511,33 @@ func load_document(doc_name: String) -> bool:
 					seg_ids.append(int(file.get_var()))
 				loaded_loops.append(GGLoop2D.new(loop_id, seg_ids))
 
+	var loaded_next_surface_id: int = 1
+	var loaded_surfaces: Array[GGSurface2D] = []
+	if file.get_position() < file.get_length():
+		var next_surf_var: Variant = file.get_var()
+		if next_surf_var != null:
+			loaded_next_surface_id = int(next_surf_var)
+		var surf_count_var: Variant = file.get_var()
+		if surf_count_var != null:
+			var surf_count: int = int(surf_count_var)
+			for _n: int in range(surf_count):
+				var s_id: int = int(file.get_var())
+				var s_loop_count: int = int(file.get_var())
+				var s_loop_ids: Array[int] = []
+				for _p: int in range(s_loop_count):
+					s_loop_ids.append(int(file.get_var()))
+				loaded_surfaces.append(GGSurface2D.new(s_id, s_loop_ids))
+
 	file.close()
 	document_name = loaded_document_name
 	units = loaded_units
 	next_point_id = loaded_next_point_id
 	next_line_id = loaded_next_line_id
 	next_loop_id = loaded_next_loop_id
+	next_surface_id = loaded_next_surface_id
 	points = loaded_points
 	lines = loaded_lines
 	loops = loaded_loops
+	surfaces = loaded_surfaces
 	is_dirty = false
 	return true

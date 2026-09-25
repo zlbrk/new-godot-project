@@ -258,6 +258,11 @@ func execute_command(tokens: PackedStringArray) -> void:
 		"remove_loop": cmd_remove_loop(tokens)
 		"list_loops": cmd_list_loops()
 		"clear_loops": cmd_clear_loops()
+		"add_surface": cmd_add_surface(tokens)
+		"update_surface": cmd_update_surface(tokens)
+		"remove_surface": cmd_remove_surface(tokens)
+		"list_surfaces": cmd_list_surfaces()
+		"clear_surfaces": cmd_clear_surfaces()
 		"check_topology": cmd_check_topology()
 		"export_geo": cmd_export_geo(tokens)
 		"zoom_in": cmd_zoom_in()
@@ -461,7 +466,7 @@ func cmd_list_points() -> void:
 
 
 # ========================================================
-# Model commands: Lines & Topology
+# Model commands: Lines
 # ========================================================
 func cmd_add_line(tokens: PackedStringArray) -> void:
 	if tokens.size() != 3:
@@ -572,6 +577,15 @@ func cmd_remove_loop(tokens: PackedStringArray) -> void:
 		print_list_item("Usage: remove_loop <loop_id>")
 		return
 	var loop_id: int = tokens[1].to_int()
+	var dependent_surfaces: Array[int] = model.get_surfaces_referencing_loop(loop_id)
+	if not dependent_surfaces.is_empty():
+		var ids_formatted: PackedStringArray = PackedStringArray()
+		for sid: int in dependent_surfaces:
+			ids_formatted.append(str(sid))
+		print_list_item("Error: cannot remove Loop %d. It is used by Surface(s): %s." % [
+			loop_id, ", ".join(ids_formatted)
+		])
+		return
 	if not model.remove_loop(loop_id):
 		print_list_item("Error: Loop ID %d not found." % [loop_id])
 		return
@@ -600,16 +614,112 @@ func cmd_list_loops() -> void:
 
 
 func cmd_clear_loops() -> void:
-	model.clear_loops()
+	if not model.clear_loops():
+		print_list_item("Error: cannot clear loops while surfaces exist. Remove surfaces first.")
+		return
 	update_status_label()
 	gg_viewport.queue_redraw()
 	print_list_item("Loops cleared.")
 
 
+# ========================================================
+# Model commands: Surfaces (CRUD)
+# ========================================================
+func cmd_add_surface(tokens: PackedStringArray) -> void:
+	if tokens.size() < 2:
+		print_list_item("Usage: add_surface <outer_loop_id> [hole_loop_ids...]")
+		return
+	var loop_ids: Array[int] = []
+	for i: int in range(1, tokens.size()):
+		if not tokens[i].is_valid_int():
+			print_list_item("Error: loop token '%s' is not an integer ID." % [tokens[i]])
+			return
+		loop_ids.append(tokens[i].to_int())
+
+	var validation_err: String = model.validate_surface_candidate(loop_ids)
+	if not validation_err.is_empty():
+		print_list_item("Error: " + validation_err)
+		return
+
+	var surface: GGSurface2D = model.add_surface(loop_ids)
+	if surface == null:
+		print_list_item("Error: failed to create surface.")
+		return
+
+	update_status_label()
+	gg_viewport.queue_redraw()
+	print_list_item("Surface %d created (outer: L%d, holes: %d)." % [
+		surface.id, surface.loop_ids[0], surface.loop_ids.size() - 1
+	])
+
+
+func cmd_list_surfaces() -> void:
+	if model.surfaces.is_empty():
+		print_list_item("No surfaces.")
+		return
+	for surface: GGSurface2D in model.surfaces:
+		var outer_id: int = surface.loop_ids[0]
+		var holes_str: String = "none"
+		if surface.loop_ids.size() > 1:
+			var holes: PackedStringArray = PackedStringArray()
+			for i: int in range(1, surface.loop_ids.size()):
+				holes.append("L" + str(surface.loop_ids[i]))
+			holes_str = ", ".join(holes)
+		print_list_item("Surface %d: outer [L%d], holes [%s]" % [
+			surface.id, outer_id, holes_str
+		])
+
+
+func cmd_update_surface(tokens: PackedStringArray) -> void:
+	if tokens.size() < 3:
+		print_list_item("Usage: update_surface <surface_id> <outer_loop_id> [hole_loop_ids...]")
+		return
+	if not tokens[1].is_valid_int():
+		print_list_item("Error: surface_id must be an integer.")
+		return
+	var surface_id: int = tokens[1].to_int()
+
+	var new_loop_ids: Array[int] = []
+	for i: int in range(2, tokens.size()):
+		if not tokens[i].is_valid_int():
+			print_list_item("Error: loop token '%s' is not an integer ID." % [tokens[i]])
+			return
+		new_loop_ids.append(tokens[i].to_int())
+
+	var err: String = model.update_surface(surface_id, new_loop_ids)
+	if not err.is_empty():
+		print_list_item("Error: " + err)
+		return
+
+	update_status_label()
+	gg_viewport.queue_redraw()
+	print_list_item("Surface %d updated successfully." % [surface_id])
+
+
+func cmd_remove_surface(tokens: PackedStringArray) -> void:
+	if tokens.size() != 2 or not tokens[1].is_valid_int():
+		print_list_item("Usage: remove_surface <surface_id>")
+		return
+	var surface_id: int = tokens[1].to_int()
+	if not model.remove_surface(surface_id):
+		print_list_item("Error: Surface ID %d not found." % [surface_id])
+		return
+	update_status_label()
+	gg_viewport.queue_redraw()
+	print_list_item("Surface %d removed." % [surface_id])
+
+
+func cmd_clear_surfaces() -> void:
+	model.clear_surfaces()
+	update_status_label()
+	gg_viewport.queue_redraw()
+	print_list_item("Surfaces cleared.")
+
+
 func cmd_check_topology() -> void:
 	var errors: Array[String] = model.validate_topology()
 	if errors.is_empty():
-		print_list_item("Topology OK: all lines and loops reference valid geometry.")
+		print_list_item("Topology OK: all lines, loops and surfaces reference valid geometry.")
 	else:
 		print_list_item("Topology validation failed with %d error(s):" % [errors.size()])
 		for err: String in errors:
@@ -639,47 +749,59 @@ func cmd_help() -> void:
 	print_line("Available commands:")
 	print_list_item("help")
 	print_list_item("clear")
-	print_list_item("about")
-	print_list_item("new")
+	print_line("Document commands:")
+	print_list_item("new <filename>")
 	print_list_item("save")
-	print_list_item("load")
-	print_list_item("history")
+	print_list_item("load <filename>")
+	print_list_item("rename <filename>")
 	print_list_item("status")
-	print_list_item("rename")
+	print_list_item("history")
+	print_list_item("about")
+	print_line("Points (0D):")
 	print_list_item("list_points")
-	print_list_item("add_point")
-	print_list_item("move_point")
-	print_list_item("remove_point")
+	print_list_item("add_point <x> <y>")
+	print_list_item("move_point <id> <x> <y>")
+	print_list_item("remove_point <id>")
 	print_list_item("clear_points")
-	print_list_item("add_line")
-	print_list_item("remove_line")
+	print_line("Lines (1D):")
 	print_list_item("list_lines")
+	print_list_item("add_line <p_start> <p_end>")
+	print_list_item("remove_line <id>")
 	print_list_item("clear_lines")
-	print_list_item("add_loop")
-	print_list_item("remove_loop")
+	print_line("Loops (1D closed):")
 	print_list_item("list_loops")
+	print_list_item("add_loop <signed_l1> <signed_l2> ...")
+	print_list_item("remove_loop <id>")
 	print_list_item("clear_loops")
+	print_line("Surfaces (2D):")
+	print_list_item("list_surfaces")
+	print_list_item("add_surface <outer_loop> [hole_loops...]")
+	print_list_item("update_surface <id> <outer_loop> [hole_loops...]")
+	print_list_item("remove_surface <id>")
+	print_list_item("clear_surfaces")
+	print_line("Validation and Export:")
 	print_list_item("check_topology")
-	print_list_item("export_geo")
+	print_list_item("export_geo [filename]")
+	print_line("Viewport commands:")
 	print_list_item("zoom_in")
 	print_list_item("zoom_out")
-	print_list_item("set_zoom")
-	print_list_item("set_pan_offset")
-	print_list_item("pan_by")
+	print_list_item("set_zoom <factor>")
+	print_list_item("set_pan_offset <x> <y>")
+	print_list_item("pan_by <dx> <dy>")
 	print_list_item("reset_view")
 
 
 func cmd_about() -> void:
-	print_line("GG Editor prototype")
-	print_line("Godot + Gmsh")
+	print_line("GG CAD Editor prototype")
+	print_line("Godot 4 + Gmsh 2D B-Rep engine")
 
 
 func cmd_status() -> void:
 	print_list_item("Document: %s" % [model.document_name])
 	print_list_item("Units: %s" % [model.units])
 	print_list_item("Dirty: %s" % [str(model.is_dirty)])
-	print_list_item("Contains: %d points, %d lines, %d loops" % [
-		model.points.size(), model.lines.size(), model.loops.size()
+	print_list_item("Geometry: %d points, %d lines, %d loops, %d surfaces" % [
+		model.points.size(), model.lines.size(), model.loops.size(), model.surfaces.size()
 	])
 
 
