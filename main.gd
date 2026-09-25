@@ -152,7 +152,6 @@ func _on_gg_viewport_gui_input(event: InputEvent) -> void:
 
 func _handle_viewport_pan_gesture(pan_event: InputEventPanGesture) -> void:
 	gg_viewport.pan_by(-pan_event.delta * PAN_GESTURE_SCALE)
-	gg_viewport.queue_redraw()
 
 
 func _handle_viewport_magnify_gesture(event: InputEventMagnifyGesture) -> void:
@@ -174,8 +173,6 @@ func _handle_viewport_magnify_gesture(event: InputEventMagnifyGesture) -> void:
 		_magnify_accumulator *= MAGNIFY_STEP_FACTOR
 		steps += 1
 
-	if steps > 0:
-		gg_viewport.queue_redraw()
 
 
 func _handle_viewport_mouse_button(mouse_event: InputEventMouseButton) -> void:
@@ -186,19 +183,16 @@ func _handle_viewport_mouse_button(mouse_event: InputEventMouseButton) -> void:
 		MOUSE_BUTTON_WHEEL_UP:
 			if mouse_event.pressed:
 				gg_viewport.zoom_in_at(mouse_event.position)
-				gg_viewport.queue_redraw()
 				gg_viewport.accept_event()
 		MOUSE_BUTTON_WHEEL_DOWN:
 			if mouse_event.pressed:
 				gg_viewport.zoom_out_at(mouse_event.position)
-				gg_viewport.queue_redraw()
 				gg_viewport.accept_event()
 
 
 func _handle_viewport_mouse_motion(motion_event: InputEventMouseMotion) -> void:
 	if is_mouse_panning:
 		gg_viewport.pan_by(motion_event.relative)
-		gg_viewport.queue_redraw()
 		gg_viewport.accept_event()
 
 
@@ -302,8 +296,7 @@ func cmd_set_pan_offset(tokens: PackedStringArray) -> void:
 		return
 	var ox: float = tokens[1].to_float()
 	var oy: float = tokens[2].to_float()
-	gg_viewport.pan_offset = Vector2(ox, oy)
-	gg_viewport.queue_redraw()
+	gg_viewport.set_pan_offset(Vector2(ox, oy))
 	print_list_item("Pan offset set to: (%.2f, %.2f)" % [ox, oy])
 
 
@@ -364,7 +357,7 @@ func cmd_new(tokens: PackedStringArray) -> void:
 
 
 func cmd_rename(tokens: PackedStringArray) -> void:
-	if tokens.size() != 2:
+	if tokens.size() != 2 or not tokens[1].is_valid_ascii_identifier():
 		print_line("Usage: rename <filename> without extension")
 		return
 	var new_name: String = tokens[1]
@@ -723,10 +716,20 @@ func cmd_check_topology() -> void:
 
 func cmd_export_geo(tokens: PackedStringArray) -> void:
 	var target_name: String = ""
+
+	if tokens.size() > 2:
+		print_list_item("Usage: export_geo [filename]")
+		return
+
 	if tokens.size() == 2:
+		if not tokens[1].is_valid_ascii_identifier():
+			print_list_item("Error: invalid filename.")
+			return
 		target_name = tokens[1]
 	else:
+		print_list_item("No filename provided. Using document name as target.")
 		target_name = model.document_name.get_basename()
+
 	if model.export_geo_file(target_name):
 		print_line("Exported Gmsh file: user://%s.geo" % [target_name])
 	else:
