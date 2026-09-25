@@ -279,13 +279,11 @@ func execute_command(tokens: PackedStringArray) -> void:
 # ========================================================
 func cmd_zoom_in() -> void:
 	gg_viewport.zoom_in()
-	gg_viewport.queue_redraw()
 	print_list_item("Zoomed in. Current zoom: %.2f" % [gg_viewport.zoom])
 
 
 func cmd_zoom_out() -> void:
 	gg_viewport.zoom_out()
-	gg_viewport.queue_redraw()
 	print_list_item("Zoomed out. Current zoom: %.2f" % [gg_viewport.zoom])
 
 
@@ -295,7 +293,6 @@ func cmd_set_zoom(tokens: PackedStringArray) -> void:
 		return
 	var new_zoom: float = tokens[1].to_float()
 	gg_viewport.set_zoom(new_zoom)
-	gg_viewport.queue_redraw()
 	print_list_item("Zoom set to: %.2f" % [gg_viewport.zoom])
 
 
@@ -317,13 +314,11 @@ func cmd_pan_by(tokens: PackedStringArray) -> void:
 	var dx: float = tokens[1].to_float()
 	var dy: float = tokens[2].to_float()
 	gg_viewport.pan_by(Vector2(dx, dy))
-	gg_viewport.queue_redraw()
 	print_list_item("Panned by: (%.2f, %.2f)" % [dx, dy])
 
 
 func cmd_reset_view() -> void:
 	gg_viewport.reset_view()
-	gg_viewport.queue_redraw()
 	print_list_item("View reset to origin.")
 
 
