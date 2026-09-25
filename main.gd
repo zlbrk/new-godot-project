@@ -324,46 +324,69 @@ func update_status_label() -> void:
 
 
 func cmd_load_document(tokens: PackedStringArray) -> void:
-	if tokens.size() != 2 or not tokens[1].is_valid_ascii_identifier():
-		print_line("Usage: load <document_name> without extension.")
+	if tokens.size() != 2:
+		print_line("Usage: load <filename> without extension.")
 		return
+
+	if model.is_dirty:
+		print_line("Current document has unsaved changes. Save it before loading another document.")
+		return
+
 	var doc_name: String = tokens[1]
+
 	if not model.load_document(doc_name):
 		print_line("Failed to load document %s.ggb." % [doc_name])
 		return
+
 	update_status_label()
 	gg_viewport.queue_redraw()
 	print_line("Document %s loaded successfully." % [model.document_name])
-
 
 func cmd_save_document() -> void:
 	if not model.save_document():
 		print_line("Failed to save document %s." % [model.document_name])
 		return
+
 	print_line("Document %s saved successfully." % [model.document_name])
 	update_status_label()
 
 
 func cmd_new(tokens: PackedStringArray) -> void:
-	if tokens.size() != 2 or not tokens[1].is_valid_ascii_identifier():
+	if tokens.size() != 2:
 		print_line("Usage: new <filename> without extension.")
 		return
-	model.reset()
+
 	var new_name: String = tokens[1]
-	model.document_name = new_name + ".ggb"
-	print_line("%s document created." % [model.document_name])
+	if not model.is_valid_document_name(new_name):
+		print_line("Invalid document name: %s" % [new_name])
+		return
+
+	if model.is_dirty:
+		print_line("Current document has unsaved changes. Save it before creating a new document.")
+		return
+
+	model.reset()
+	if not model.rename_document(new_name):
+		print_line("Failed to create document %s.ggb." % [new_name])
+		return
+
 	update_status_label()
 	gg_viewport.queue_redraw()
+	print_line("New document %s created." % [model.document_name])
 
 
 func cmd_rename(tokens: PackedStringArray) -> void:
-	if tokens.size() != 2 or not tokens[1].is_valid_ascii_identifier():
-		print_line("Usage: rename <filename> without extension")
+	if tokens.size() != 2:
+		print_line("Usage: rename <filename> without extension.")
 		return
+
 	var new_name: String = tokens[1]
-	model.rename_document(new_name)
-	print_line("Document renamed to %s" % [new_name])
+	if not model.rename_document(new_name):
+		print_line("Invalid document name: %s" % [new_name])
+		return
+
 	update_status_label()
+	print_line("Document renamed to %s." % [model.document_name])
 
 
 # ========================================================

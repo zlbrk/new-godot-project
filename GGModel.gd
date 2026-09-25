@@ -1,6 +1,8 @@
 class_name GGModel
 extends RefCounted
 
+const ALLOWED_NAME_CHARS: String = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-."
+
 var document_name: String = "Untitled.ggb"
 var units: String = "mm"
 var is_dirty: bool = false
@@ -30,6 +32,34 @@ func reset() -> void:
 	next_loop_id = 1
 	surfaces.clear()
 	next_surface_id = 1
+
+
+# -----------------------------------------------------------------------------
+# Document management
+# -----------------------------------------------------------------------------
+func is_valid_document_name(name: String) -> bool:
+	if name.is_empty():
+		return false
+
+	if name == "." or name == ".." or name.ends_with("."):
+		return false
+
+	for i: int in range(name.length()):
+		var character: String = name.substr(i, 1)
+
+		if not ALLOWED_NAME_CHARS.contains(character):
+			return false
+
+	return true
+
+
+func rename_document(new_name: String) -> bool:
+	if not is_valid_document_name(new_name):
+		return false
+
+	document_name = new_name + ".ggb"
+	is_dirty = true
+	return true
 
 
 # -----------------------------------------------------------------------------
@@ -369,15 +399,13 @@ func validate_topology() -> Array[String]:
 	return errors
 
 
-func rename_document(new_name: String) -> void:
-	document_name = new_name + ".ggb"
-	is_dirty = true
-
-
 # -----------------------------------------------------------------------------
 # Gmsh .geo Export
 # -----------------------------------------------------------------------------
 func export_geo_file(target_filename: String) -> bool:
+	if not is_valid_document_name(target_filename):
+		return false
+
 	var path: String = "user://" + target_filename + ".geo"
 	var file: FileAccess = FileAccess.open(path, FileAccess.WRITE)
 	if file == null:
@@ -458,6 +486,9 @@ func save_document() -> bool:
 
 
 func load_document(doc_name: String) -> bool:
+	if not is_valid_document_name(doc_name):
+		return false
+
 	var load_path: String = "user://" + doc_name + ".ggb"
 	if not FileAccess.file_exists(load_path):
 		return false
