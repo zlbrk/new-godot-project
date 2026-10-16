@@ -738,15 +738,14 @@ func cmd_check_topology() -> void:
 
 
 func cmd_export_geo(tokens: PackedStringArray) -> void:
-	var target_name: String = ""
 
 	if tokens.size() > 2:
 		print_list_item("Usage: export_geo [filename]")
 		return
-
+	var target_name: String = tokens[1]
 	if tokens.size() == 2:
-		if not tokens[1].is_valid_ascii_identifier():
-			print_list_item("Error: invalid filename.")
+		if not model.rename_document(target_name):
+			print_line("Invalid document name: %s" % [target_name])
 			return
 		target_name = tokens[1]
 	else:

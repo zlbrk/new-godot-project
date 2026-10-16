@@ -255,11 +255,22 @@ func draw_surfaces() -> void:
 	if model == null:
 		return
 
-	var font_size: int = GGTheme.surface_label_font_size()
-	var fill_color: Color = GGTheme.SURFACE_FILL_COLOR
+	var font: Font = get_viewport_font()
+	var font_size: int = GGTheme.loop_label_font_size()
 	var label_color: Color = GGTheme.SURFACE_LABEL_COLOR
 
-	for surface: GGSurface2D in model.surfaces:
+	var symbol_width_px: float = font.get_string_size(
+		"S00 ",
+		HORIZONTAL_ALIGNMENT_LEFT,
+		-1,
+		font_size
+	).x
+
+	var symbol_width: float = symbol_width_px / GGTheme.ui_scale()
+
+	for i: int in range(model.surfaces.size()):
+		var surface: GGSurface2D = model.surfaces[i]
+
 		if surface.loop_ids.is_empty():
 			continue
 
@@ -286,9 +297,9 @@ func draw_surfaces() -> void:
 			outer_poly
 		]
 
-		for i: int in range(1, surface.loop_ids.size()):
+		for hole_idx: int in range(1, surface.loop_ids.size()):
 			var hole_loop: GGLoop2D = model.get_loop_by_id(
-				surface.loop_ids[i]
+				surface.loop_ids[hole_idx]
 			)
 
 			if hole_loop == null:
@@ -322,7 +333,7 @@ func draw_surfaces() -> void:
 			if poly.size() >= 3:
 				draw_colored_polygon(
 					poly,
-					fill_color
+					GGTheme.SURFACE_FILL_COLOR
 				)
 
 		var centroid_world: Vector2 = model.get_loop_centroid(
@@ -337,16 +348,21 @@ func draw_surfaces() -> void:
 			)
 		)
 
-		var text: String = "S%d" % surface.id
+		var surface_number: int = i + 1
+		var text: String = "S%02d" % surface.id
+
+		var dynamic_offset: Vector2 = SURFACE_LABEL_OFFSET + Vector2(
+			symbol_width * float(surface_number),
+			0.0
+		)
 
 		_draw_centered_label(
 			text,
 			centroid_screen,
-			SURFACE_LABEL_OFFSET,
+			dynamic_offset,
 			font_size,
 			label_color
 		)
-
 
 func draw_loops() -> void:
 	if model == null:
