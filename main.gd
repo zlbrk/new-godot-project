@@ -742,9 +742,12 @@ func cmd_export_geo(tokens: PackedStringArray) -> void:
 	if tokens.size() > 2:
 		print_list_item("Usage: export_geo [filename]")
 		return
-	var target_name: String = tokens[1]
+
+	var target_name: String = ""
+	
 	if tokens.size() == 2:
-		if not model.rename_document(target_name):
+		target_name = tokens[1]
+		if not model.is_valid_document_name(target_name):
 			print_line("Invalid document name: %s" % [target_name])
 			return
 		target_name = tokens[1]
