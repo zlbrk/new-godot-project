@@ -745,9 +745,6 @@ func cmd_export_geo(tokens: PackedStringArray) -> void:
 
 	var target_name: String = ""
 	
-
-	var target_name: String = ""
-	
 	if tokens.size() == 2:
 		if not model.is_valid_document_name(target_name):
 			print_line("Invalid document name: %s" % [target_name])
